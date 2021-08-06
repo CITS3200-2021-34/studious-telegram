@@ -1,13 +1,3 @@
-from abc import ABC, abstractmethod
-from typing import List
+from .questionmatcher import AbstractQuestionMatcher
 
-
-class AbstractQuestionMatcher(ABC):
-    """Abstract question matcher interface.
-    
-    Concrete question matcher implementations must be a subclass and implement
-    all abstract methods."""
-    
-    @abstractmethod
-    def getSuggestions(self, question: str) -> List[str]:
-        pass
+from .keywordmatcher import KeywordMatcher

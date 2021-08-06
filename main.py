@@ -1,14 +1,9 @@
-from domain.keyword import KeywordMatcher
-from interface.basiccli import BasicCLI
+from app import App
 
 def main():
-    questionMatcher = KeywordMatcher()
-    cli = BasicCLI()
+    app = App()
 
-    cli.setQuestionMatcher(questionMatcher)
-
-    cli.start()
-
+    app.start()
 
 if __name__ == "__main__":
     main()

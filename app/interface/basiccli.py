@@ -1,16 +1,23 @@
-import domain
-from interface import AbstractUserInterface
+from ..domain import AbstractQuestionMatcher
+from .userinterface import AbstractUserInterface
 
 class BasicCLI(AbstractUserInterface):
-    def setQuestionMatcher(self, matcher: domain.AbstractQuestionMatcher):
-        self.matcher = matcher
+    __matcher: AbstractQuestionMatcher = None
+
+    def __init__(self, matcher: AbstractQuestionMatcher) -> None:
+        super().__init__()
+        self.setQuestionMatcher(matcher)
+
+    def setQuestionMatcher(self, matcher: AbstractQuestionMatcher):
+        self.__matcher = matcher
 
     def start(self):
-        if self.matcher == None:
+        if self.__matcher == None:
             raise RuntimeError("Matcher has not been set.")
+        
         while True:
             question = input("Please enter your question >> ")
-            suggestions = self.matcher.getSuggestions(question)
+            suggestions = self.__matcher.getSuggestions(question)
 
             print("Suggestions:")
             for suggestion in suggestions:
