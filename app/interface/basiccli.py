@@ -9,9 +9,19 @@ import os
 
 
 class BasicCLI(AbstractUserInterface):
+    '''
+    Class for constructing a basic command line interface for the user 
+    to interact with when asking questions and viewing suggestions.
+    '''
     __matcher: AbstractQuestionMatcher = None
 
     def __init__(self, matcher: AbstractQuestionMatcher) -> None:
+        '''
+        Constructor for the BasicCLI class.
+
+        :param self: Instance of the BasicCLI object
+        :param matcher: Abstract question matcher interface
+        '''
         super().__init__()
         self.setQuestionMatcher(matcher)
         print(os.getcwd())
@@ -26,11 +36,25 @@ class BasicCLI(AbstractUserInterface):
         self.__matcher = matcher
 
     def getQuestionAnswer(self):
+        '''
+        Stores data as individual posts using get_posts() function and 
+        then uses create_data_structures() function to place them into 
+        either a question or an answer dictionary.
+
+        :param self: Instance of the BasicCLI object
+        '''
         posts = self.processor.get_posts(self.parser.parse_text())
         self.questions, self.answer = self.processor.create_data_structures(
             posts)
 
     def start(self):
+        '''
+        Gathers and prints top 3 suggestions, based on user's command line 
+        entry, allowing user to select one of the suggestions to which the 
+        answer will be printed.
+
+        :param self: Instance of the BasicCLI object
+        '''
         if self.__matcher == None:
             raise RuntimeError("Matcher has not been set.")
 
@@ -38,11 +62,11 @@ class BasicCLI(AbstractUserInterface):
         posts = self.processor.get_posts(threads)
         questions, answers = self.processor.create_data_structures(posts)
 
-        # use dicitonary to get sentence embeddings per subject
+        # use dictionary to get sentence embeddings per subject
         e = SentEmbeddings(questions, answers)
-        #model, dict = e.doc2vec()
+        # model, dict = e.doc2vec()
 
-        # Load model and find similarities
+        # load model and find similarities
         model = Doc2Vec.load("app/embedder/pretrained/d2v.model")
         vect_q = e.vectorised_data(model)
         while True:
