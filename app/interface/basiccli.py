@@ -34,28 +34,28 @@ class BasicCLI(AbstractUserInterface):
         if self.__matcher == None:
             raise RuntimeError("Matcher has not been set.")
 
-        threads = self.parser.parse_text()
-        posts = self.processor.get_posts(threads)
-        questions, answers = self.processor.create_data_structures(posts)
+       #threads = self.parser.parse_text()
+       # posts = self.processor.get_posts(threads)
+       # questions, answers = self.processor.create_data_structures(posts)
 
         # use dicitonary to get sentence embeddings per subject
-        e = SentEmbeddings(questions, answers)
+        #e = SentEmbeddings(questions, answers)
         #model, dict = e.doc2vec()
 
         # Load model and find similarities
-        model = Doc2Vec.load("app/embedder/pretrained/d2v.model")
-        vect_q = e.vectorised_data(model)
+        #model = Doc2Vec.load("app/embedder/pretrained/d2v.model")
+        #vect_q = e.vectorised_data(model)
         while True:
             question = input("Please enter your question >> ")
             print(f'QUESTIONS: {question}')
             print()
             print("TOP SUGGESTED:")
-            dict = self.embedder.get_similarity(model, question, vect_q)
-            top_suggestions = e.get_top(dict, 3)
+            dict = self.embedder.universal_encoder(question)
+            top_suggestions = self.embedder.get_top(dict, 10)
             print()
             temp = input(
                 "Please Enter the suggested number (0 if no suggestion helps)>> ")
             suggestion = top_suggestions[int(temp)-1]
             print()
-            e.get_question_answers(suggestion)
+            self.embedder.get_question_answers(suggestion)
             print()

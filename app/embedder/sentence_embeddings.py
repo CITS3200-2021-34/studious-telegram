@@ -2,6 +2,11 @@ from gensim.models.doc2vec import Doc2Vec, TaggedDocument
 from nltk.tokenize import word_tokenize
 from .embeddingmodels import AbstractEmbeddingModel
 from sklearn.metrics.pairwise import cosine_similarity
+from sentence_transformers import SentenceTransformer
+import tensorflow as tf
+import tensorflow_hub as hub
+from scipy.spatial.distance import cosine
+import numpy as np
 import pandas as np
 import operator
 
@@ -45,6 +50,26 @@ class SentEmbeddings(AbstractEmbeddingModel):
         return model, tagged_dict
         # model.save("d2v.model")
         # print("Model Saved")
+
+    def universal_encoder(self, input):
+        module_url = "https://tfhub.dev/google/universal-sentence-encoder/4"
+        model = hub.load(module_url)
+        question_list = [k for k in self.questions.keys()]
+        sentence_embeddings = model(question_list)
+        query_vec = model([input])[0]
+        query_vec = tf.reshape(query_vec, (-1, 1))
+        sim_dict = {}
+
+        temp = self.questions.items()
+        li = list(temp)
+
+        for i, sent in enumerate(sentence_embeddings):
+            sent = tf.reshape(sent, (-1, 1))
+            sim_dict[li[i][0]] = 1 - cosine(sent, query_vec)
+
+        sim_dict = sorted(sim_dict.items(),
+                          key=operator.itemgetter(1), reverse=True)
+        return sim_dict
 
     def load_execute_model(self, model, input):
         token_input = word_tokenize(input.lower())
