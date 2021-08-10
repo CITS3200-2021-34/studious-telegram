@@ -130,3 +130,6 @@ dmypy.json
 
 # Do not upload the questions
 data/
+
+# Metadata file
+.DS_Store
