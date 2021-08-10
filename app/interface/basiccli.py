@@ -34,14 +34,6 @@ class BasicCLI(AbstractUserInterface):
         if self.__matcher == None:
             raise RuntimeError("Matcher has not been set.")
 
-       #threads = self.parser.parse_text()
-       # posts = self.processor.get_posts(threads)
-       # questions, answers = self.processor.create_data_structures(posts)
-
-        # use dicitonary to get sentence embeddings per subject
-        #e = SentEmbeddings(questions, answers)
-        #model, dict = e.doc2vec()
-
         # Load model and find similarities
         #model = Doc2Vec.load("app/embedder/pretrained/d2v.model")
         #vect_q = e.vectorised_data(model)
