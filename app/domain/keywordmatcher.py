@@ -1,4 +1,5 @@
 from .questionmatcher import AbstractQuestionMatcher
+from typing import List
 
 class KeywordMatcher(AbstractQuestionMatcher):
     def __init__(self):
@@ -6,7 +7,7 @@ class KeywordMatcher(AbstractQuestionMatcher):
 
         print("Keyword matcher loaded")
 
-    def getSuggestions(self, question: str) -> list[str]:
+    def getSuggestions(self, question: str) -> List[str]:
         pastQuestions = {"pointer": "How do I use pointers in C?", "code": "How do I code well?"}
         suggestions = []
 

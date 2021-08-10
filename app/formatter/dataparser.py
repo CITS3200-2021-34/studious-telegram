@@ -1,12 +1,13 @@
 from .dataformatter import AbstractDataFormater
 
+from typing import List
 
 class DataParser(AbstractDataFormater):
 
     def __init__(self, file):
         self.file = file
 
-    def parse_text(self) -> list[str]:
+    def parse_text(self) -> List[str]:
         with open(self.file, 'r') as f:
             line = f.readline()
             line = f.readline()  # Not sure best way to do this, needed to skip the first line

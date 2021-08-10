@@ -10,9 +10,11 @@ import numpy as np
 import pandas as np
 import operator
 
+from typing import List, Dict
+
 
 class SentEmbeddings(AbstractEmbeddingModel):
-    def __init__(self, questions: dict[str, list[str]], answers: dict[str, list[list[str]]]):
+    def __init__(self, questions: Dict[str, List[str]], answers: Dict[str, List[List[str]]]):
         self.questions = questions
         self.answers = answers
 
@@ -71,7 +73,7 @@ class SentEmbeddings(AbstractEmbeddingModel):
                           key=operator.itemgetter(1), reverse=True)
         return sim_dict
 
-    def sent_BERT(self, input) -> list[list[float]]:
+    def sent_BERT(self, input) -> List[List[float]]:
         model = SentenceTransformer('bert-base-nli-mean-tokens')
         question_list = [k for k in self.questions.keys()]
         sentence_embeddings = model.encode(question_list)

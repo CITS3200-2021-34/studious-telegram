@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import List
 
 class AbstractQuestionMatcher(ABC):
     """Abstract question matcher interface.
@@ -7,5 +8,5 @@ class AbstractQuestionMatcher(ABC):
     all abstract methods."""
     
     @abstractmethod
-    def getSuggestions(self, question: str) -> list[str]:
+    def getSuggestions(self, question: str) -> List[str]:
         pass
