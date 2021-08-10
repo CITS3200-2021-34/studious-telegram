@@ -27,6 +27,20 @@ This defines the user interface, the component that allows the user to interact 
 
 Concrete user interface implementations must be a subclass and implement all abstract methods.
 
+# Requirements
+
+## Python modules
+
+* `gensim`
+* `nltk`
+* `sklearn`
+* `sentence_transformers`
+* `tensorflow`
+* `tensorflow_hub`
+* `scipy`
+* `numpy`
+* `pandas`
+
 # Data
 
 This app relies on previous QnA data. This data, although not highly sensitive, should not be publicly shared so that risk is minimised. To achieve this all data should be stored in `./data`. This directory is included in `.gitignore` to help prevent accidental upload.
