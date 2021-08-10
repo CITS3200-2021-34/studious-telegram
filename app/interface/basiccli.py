@@ -51,6 +51,7 @@ class BasicCLI(AbstractUserInterface):
             print()
             print("TOP SUGGESTED:")
             dict = self.embedder.universal_encoder(question)
+            #dict = self.embedder.sent_BERT(question)
             top_suggestions = self.embedder.get_top(dict, 10)
             print()
             temp = input(

@@ -71,6 +71,25 @@ class SentEmbeddings(AbstractEmbeddingModel):
                           key=operator.itemgetter(1), reverse=True)
         return sim_dict
 
+    def sent_BERT(self, input) -> list[list[float]]:
+        model = SentenceTransformer('bert-base-nli-mean-tokens')
+        question_list = [k for k in self.questions.keys()]
+        sentence_embeddings = model.encode(question_list)
+
+        query = model.encode([input])[0]
+        query = query.reshape(-1, 1)
+
+        temp = self.questions.items()
+        li = list(temp)
+
+        sim_dict = {}
+        for i, sent in enumerate(sentence_embeddings):
+            sent = tf.reshape(sent, (-1, 1))
+            sim_dict[li[i][0]] = 1 - cosine(sent, query)
+        sim_dict = sorted(sim_dict.items(),
+                          key=operator.itemgetter(1), reverse=True)
+        return sim_dict
+
     def load_execute_model(self, model, input):
         token_input = word_tokenize(input.lower())
         vect = model.infer_vector(token_input)
