@@ -1,12 +1,5 @@
-from app.embedder.sentence_embeddings import SentEmbeddings
 from ..domain import AbstractQuestionMatcher
-from ..preprocessor.preprocess import PreProcessor
-from ..formatter.dataparser import DataParser
-from ..embedder import SentEmbeddings
 from .userinterface import AbstractUserInterface
-from gensim.models.doc2vec import Doc2Vec
-import os
-
 
 class BasicCLI(AbstractUserInterface):
     __matcher: AbstractQuestionMatcher = None
@@ -14,41 +7,23 @@ class BasicCLI(AbstractUserInterface):
     def __init__(self, matcher: AbstractQuestionMatcher) -> None:
         super().__init__()
         self.setQuestionMatcher(matcher)
-        print(os.getcwd())
-        self.parser = DataParser('app/testfiles/help2002-2017.txt')
-        self.processor = PreProcessor()
-        self.questions = None
-        self.answers = None
-        self.getQuestionAnswer()
-        self.embedder = SentEmbeddings(self.questions, self.answer)
+    
 
     def setQuestionMatcher(self, matcher: AbstractQuestionMatcher):
         self.__matcher = matcher
-
-    def getQuestionAnswer(self):
-        posts = self.processor.get_posts(self.parser.parse_text())
-        self.questions, self.answer = self.processor.create_data_structures(
-            posts)
 
     def start(self):
         if self.__matcher == None:
             raise RuntimeError("Matcher has not been set.")
 
-        # Load model and find similarities
-        #model = Doc2Vec.load("app/embedder/pretrained/d2v.model")
-        #vect_q = e.vectorised_data(model)
         while True:
             question = input("Please enter your question >> ")
+            print("Loading....")
+            suggestions = self.__matcher.getSuggestions(question)
+
             print(f'QUESTIONS: {question}')
-            print()
-            print("TOP SUGGESTED:")
-            dict = self.embedder.universal_encoder(question)
-            #dict = self.embedder.sent_BERT(question)
-            top_suggestions = self.embedder.get_top(dict, 10)
-            print()
-            temp = input(
-                "Please Enter the suggested number (0 if no suggestion helps)>> ")
-            suggestion = top_suggestions[int(temp)-1]
-            print()
-            self.embedder.get_question_answers(suggestion)
-            print()
+            
+            for i in range(len(suggestions)):
+                if i >= 10:
+                    break
+                print(f"{i + 1}: {suggestions[i]}")

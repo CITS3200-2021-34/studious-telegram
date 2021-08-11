@@ -6,8 +6,6 @@ from sentence_transformers import SentenceTransformer
 import tensorflow as tf
 import tensorflow_hub as hub
 from scipy.spatial.distance import cosine
-import numpy as np
-import pandas as np
 import operator
 
 from typing import List, Dict
