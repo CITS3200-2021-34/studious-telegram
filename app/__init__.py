@@ -13,7 +13,7 @@ class App():
         elif targetModel == "BERT":
             questionMatcher = SentBERT(questions)
         elif targetModel == "doc2vec":
-            questionMatcher = Doc2Vec(questions)
+            questionMatcher = Doc2Vec(questions, answers)
         else: 
             raise ValueError(f"targetModel ({targetModel}) is not valid")
 
