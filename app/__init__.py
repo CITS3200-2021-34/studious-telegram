@@ -9,7 +9,7 @@ class App():
         questions, answers = parseQuestionsAnswersFromFile('app/testfiles/help2002-2017.txt')
 
         if targetModel == "UniversalEncoder":
-            questionMatcher = UniversalEncoder(questions, answers)
+            questionMatcher = UniversalEncoder(questions)
         elif targetModel == "BERT":
             questionMatcher = SentBERT(questions)
         elif targetModel == "doc2vec":

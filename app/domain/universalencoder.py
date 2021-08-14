@@ -8,27 +8,23 @@ import operator
 from typing import List
 
 class UniversalEncoder(AbstractQuestionMatcher):
-    def __init__(self, questions, answers):
-        self.__questions = questions
-        self.__answers = answers
+    MODULE_URL = "https://tfhub.dev/google/universal-sentence-encoder/4"
+
+    def __init__(self, questions):
+        self.__model = hub.load(self.MODULE_URL)
+        self.__questions_list = list(questions.keys())
+        self.__sentence_embeddings = self.model(self.__question_list)
 
     def getSuggestions(self, question: str) -> List[str]:
-        module_url = "https://tfhub.dev/google/universal-sentence-encoder/4"
-        model = hub.load(module_url)
-        question_list = [k for k in self.__questions.keys()]
-        sentence_embeddings = model(question_list)
-        query_vec = model([question])[0]
-        query_vec = tf.reshape(query_vec, (-1, 1))
-        sim_dict = {}
+        query_embedding = self.__model([question])[0]
+        query_embedding = tf.reshape(query_embedding, (-1, 1))
 
-        temp = self.__questions.items()
-        li = list(temp)
+        similarity_dict = {}
+        for i, sentence_embedding in enumerate(self.__sentence_embeddings):
+            sentence_embedding = tf.reshape(sentence_embedding, (-1, 1))
+            similarity_dict[self.__questions_list[i]] = 1 - cosine(sentence_embedding, query_embedding)
 
-        for i, sent in enumerate(sentence_embeddings):
-            sent = tf.reshape(sent, (-1, 1))
-            sim_dict[li[i][0]] = 1 - cosine(sent, query_vec)
-
-        sim_dict = sorted(sim_dict.items(),
+        similarity_dict = sorted(similarity_dict.items(),
                           key=operator.itemgetter(1), reverse=True)
 
-        return [k[0] for k in sim_dict]
+        return [k[0] for k in similarity_dict]
