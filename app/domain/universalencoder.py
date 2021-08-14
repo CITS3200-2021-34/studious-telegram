@@ -12,8 +12,8 @@ class UniversalEncoder(AbstractQuestionMatcher):
 
     def __init__(self, questions):
         self.__model = hub.load(self.MODULE_URL)
-        self.__questions_list = list(questions.keys())
-        self.__sentence_embeddings = self.model(self.__question_list)
+        self.__question_list = list(questions.keys())
+        self.__sentence_embeddings = self.__model(self.__question_list)
 
     def getSuggestions(self, question: str) -> List[str]:
         query_embedding = self.__model([question])[0]
@@ -22,7 +22,7 @@ class UniversalEncoder(AbstractQuestionMatcher):
         similarity_dict = {}
         for i, sentence_embedding in enumerate(self.__sentence_embeddings):
             sentence_embedding = tf.reshape(sentence_embedding, (-1, 1))
-            similarity_dict[self.__questions_list[i]] = 1 - cosine(sentence_embedding, query_embedding)
+            similarity_dict[self.__question_list[i]] = 1 - cosine(sentence_embedding, query_embedding)
 
         similarity_dict = sorted(similarity_dict.items(),
                           key=operator.itemgetter(1), reverse=True)
