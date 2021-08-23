@@ -88,6 +88,12 @@ def getPostsFromThreads(threads):
 
 
 def get_vectors(question):
+    '''
+    Vectorises the subject-line of the given question.
+
+    :param question: Element of question dictionary
+    :return vec: Sentence vector for question
+    '''
     module_url = "https://tfhub.dev/google/universal-sentence-encoder/4"
     model = hub.load(module_url)
     vec = model([question])[0]
