@@ -9,10 +9,20 @@ Currently the project is made up of a single module, `qna`. The `qna` module is 
 
 The project can be run in two ways. 
 
-* First locally like any other python project. See instructions in the [`qna/README.md`](qna/README.md)
-* Second using docker compose. With docker installed (see link below) run `docker-compose up --build`.
+### Locally like any other python project. 
 
-[Get Docker](https://docs.docker.com/get-docker/)
+See instructions in the [`qna/README.md`](qna/README.md)
+
+### In Docker
+
+With docker installed ([Get Docker](https://docs.docker.com/get-docker/)) run the follow commands in order.
+
+```
+docker build --file ./docker/qna.dockerfile -t qna .
+docker run -it qna
+```
+
+
 
 # GitHub usage
 
