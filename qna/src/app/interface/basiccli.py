@@ -14,7 +14,6 @@ class BasicCLI(AbstractUserInterface):
         Constructor for the BasicCLI class.
 
         :param self: Instance of the BasicCLI object
-        :par
         '''
         super().__init__()
         self.setQuestionMatcher(matcher)
@@ -24,6 +23,12 @@ class BasicCLI(AbstractUserInterface):
         self.__matcher = matcher
 
     def print_question(self, chosen_questions):
+        '''
+        Prints the provided information of a chosen question.
+
+        :param self: Instance of the BasicCLI object
+        :param chosen_questions: A chosen question from the question dictionary
+        '''
         print()
         print(f'Date: {self.__questions[chosen_questions]["Date"]}')
         print(f'To: {self.__questions[chosen_questions]["To"]}')
@@ -40,6 +45,12 @@ class BasicCLI(AbstractUserInterface):
         print()
 
     def print_answers(self, chosen_questions):
+        '''
+        For every answer to a chosen question, prints the provided information.
+
+        :param self: Instance of the BasicCLI object
+        :param chosen_questions: A chosen question from the question dictionary
+        '''
         for answers in self.__questions[chosen_questions]['Answers']:
             print(f'Date: {answers["Date"]}')
             print(f'To: {answers["To"]}')
