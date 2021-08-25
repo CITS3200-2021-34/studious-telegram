@@ -15,12 +15,20 @@ See instructions in the [`qna/README.md`](qna/README.md)
 
 ### In Docker
 
-With docker installed ([Get Docker](https://docs.docker.com/get-docker/)) run the follow commands in order.
+With docker installed ([Get Docker](https://docs.docker.com/get-docker/)) run the follow commands in order. These commands might be different under windows.
 
 ```
 docker build --file ./docker/qna.dockerfile -t qna .
 docker run -it qna
 ```
+
+Alternatively for UNIX based systems you can use the start script.
+
+```
+./start.sh
+```
+
+You might have to change the script permissions `chmod +x ./start.sh`
 
 
 
