@@ -1,4 +1,8 @@
 import email
+import tensorflow as tf
+import tensorflow_hub as hub
+import json
+
 
 def parseQuestionsAnswersFromFile(filePath: str):
     '''
@@ -10,11 +14,9 @@ def parseQuestionsAnswersFromFile(filePath: str):
     :return answers: Dictionary of answer threads
     '''
     threads = parseThreadsFromFile(filePath)
-    posts = getPostsFromThreads(threads)
-    questions, answers = parseQuestionsAnswersFromPosts(posts)
+    getPostsFromThreads(threads)
 
-    return questions, answers
-
+    
 def parseThreadsFromFile(filePath: str):
     '''
     Arranges the contents of a file into separate threads (ie. an individual 
@@ -40,55 +42,60 @@ def parseThreadsFromFile(filePath: str):
         threads.append(str)
     return threads
 
+
 def getPostsFromThreads(threads):
     '''
-    For each item in a given threads list, a list containing the item's date, 
-    subject, and body is created and stored in the posts list to be returned.
+    For each item in a given threads list, a list containing all contents
+    is stored in a json formatted dictionary to be stored in a JSON file
 
     :param threads: List of question/answer strings
-    :return posts: List containing a list of the date, subject, and body for 
-        each thread
+    :return None:
     '''
-    posts = []
+    questions = {}
+
     for i in range(0, len(threads)):
+
         msg = email.message_from_string(threads[i])
-        p = []
-        p.append(msg['Date'])
-        p.append(msg['Subject'])
-        # p.append(msg._payload)
-        p.append(msg)
-        posts.append(p)
-    return posts
 
-def parseQuestionsAnswersFromPosts(posts):
-    '''
-    Creates a dictionary containing each question and another dictionary 
-    containing each answer, using the subject line as keys for each such 
-    that the corresponding Q and As have the same key.
+        if msg['Subject'] not in questions.keys():
 
-    :param posts: List containing a list of the date, subject, and body for 
-        each thread
-    :return dict_q: Dictionary of question threads
-    :return dict_a: Dictionary of answer threads
-    '''
-    dict_q = {}
-    dict_a = {}
-    for i in range(len(posts)):
-        li = []
-        # add any post with subject not already in question dictionary
-        if posts[i][1] not in dict_q:
-            li.append(posts[i][0])
-            li.append(posts[i][2])
-            # key = subject, value = list containing date and thread body
-            dict_q[posts[i][1]] = li
-            dict_a[posts[i][1]] = []
+            vec = get_vectors(msg['Subject'])
+            vec = vec.numpy().tolist()
+            questions[msg['Subject']] = {'Date': msg['Date'],
+                                         'To': msg['To'],
+                                         'Received': msg['Received'],
+                                         'Subject_vec': vec,
+                                         'From': msg['From'],
+                                         'X-smile': msg['X-smile'],
+                                         'X-img': msg['X-img'],
+                                         'Text': msg._payload,
+                                         'Text_vec': [0],
+                                         'Answers': [],
+                                         }
         else:
-            # all posts with subject already in question dictionary to be 
-            # added to answer dictionary
-            li.append(posts[i][0])
-            li.append(posts[i][2])
-            val = dict_a.get(posts[i][1])
-            val.append(li)
-            # key = subject, value = list containing subject, date, and thread body
-            dict_a[posts[i][1]] = val
-    return dict_q, dict_a
+            questions[msg['Subject']]['Answers'].append({'Date': msg['Date'],
+                                                         'To': msg['To'],
+                                                         'Received': msg['Received'],
+                                                         'Subject': msg['Subject'],
+                                                         'From': msg['From'],
+                                                         'X-smile': msg['X-smile'],
+                                                         'X-img': msg['X-img'],
+                                                         'Text': msg._payload,
+                                                         })
+    with open('app/storage/questions2017_UE.json', 'w') as outfile:
+        json.dump(questions, outfile, indent=4)
+    print("Finished loading Json...")
+
+
+def get_vectors(question):
+    '''
+    Vectorises the subject-line of the given question.
+
+    :param question: Element of question dictionary
+    :return vec: Sentence vector for question
+    '''
+    module_url = "https://tfhub.dev/google/universal-sentence-encoder/4"
+    model = hub.load(module_url)
+    vec = model([question])[0]
+    vec = tf.reshape(vec, (-1, 1))
+    return vec

@@ -10,12 +10,29 @@ from typing import List
 
 
 class Doc2Vec(AbstractQuestionMatcher):
-    def __init__(self, questions, answers):
+    '''
+    This is a class for sentence embedding of question subjects using Doc2Vec.
+    '''
+
+    def __init__(self, questions):
+        '''
+        Constructor for the Doc2Vec class.
+
+        :param self: Instance of the Doc2Vec object
+        :param questions: Dictionary of question threads
+        '''
         self.__questions = questions
-        self.__answers = answers
 
     def getSuggestions(self, question: str) -> List[str]:
+        '''
+        Determines question suggestions for a given question, based on the 
+        similarity of their subject-line.
 
+        :param self: Instance of the Doc2Vec object
+        :param question: An element of the question dictionary
+        :return [k[0] for k in similarity_dict]: List of all questions from 
+            question dictionary ordered from most similar to least
+        '''
         # Load model
         model = Doc2Vec.load('app/pretrained/d2v.model')
 

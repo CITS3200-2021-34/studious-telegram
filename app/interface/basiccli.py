@@ -2,6 +2,7 @@ from ..domain import AbstractQuestionMatcher
 from .userinterface import AbstractUserInterface
 import questionary
 
+
 class BasicCLI(AbstractUserInterface):
     '''
     Class for constructing a basic command line interface for the user 
@@ -9,19 +10,64 @@ class BasicCLI(AbstractUserInterface):
     '''
     __matcher: AbstractQuestionMatcher = None
 
-    def __init__(self, matcher: AbstractQuestionMatcher) -> None:
+    def __init__(self, matcher: AbstractQuestionMatcher, questions):
         '''
         Constructor for the BasicCLI class.
 
         :param self: Instance of the BasicCLI object
-        :param matcher: Abstract question matcher interface
         '''
         super().__init__()
         self.setQuestionMatcher(matcher)
-    
+        self.__questions = questions
 
     def setQuestionMatcher(self, matcher: AbstractQuestionMatcher):
         self.__matcher = matcher
+
+    def print_question(self, chosen_questions):
+        '''
+        Prints the provided information of a chosen question.
+
+        :param self: Instance of the BasicCLI object
+        :param chosen_questions: A chosen question from the question dictionary
+        '''
+        print()
+        print(f'Date: {self.__questions[chosen_questions]["Date"]}')
+        print(f'To: {self.__questions[chosen_questions]["To"]}')
+        print(
+            f'Received: {self.__questions[chosen_questions]["Received"]}')
+        print(f'Subject: { chosen_questions}')
+        print(f'From: {self.__questions[ chosen_questions]["From"]}')
+        print(f'X-smile: {self.__questions[ chosen_questions]["X-smile"]}')
+        print(f'X-img: {self.__questions[chosen_questions]["X-img"]}')
+        print()
+        print(self.__questions[chosen_questions]["Text"])
+        print()
+        print("---------------------------------------------")
+        print()
+
+    def print_answers(self, chosen_questions):
+        '''
+        For every answer to a chosen question, prints the provided information.
+
+        :param self: Instance of the BasicCLI object
+        :param chosen_questions: A chosen question from the question dictionary
+        '''
+        for answers in self.__questions[chosen_questions]['Answers']:
+            print(f'Date: {answers["Date"]}')
+            print(f'To: {answers["To"]}')
+            print(
+                f'Received: {answers["Received"]}')
+            print(f'Subject: {chosen_questions}')
+            print(f'From: {answers["From"]}')
+            print(
+                f'X-smile: {answers["X-smile"]}')
+            print(
+                f'X-img: {answers["X-img"]}')
+            print()
+            print(answers['Text'])
+            print()
+            print("---------------------------------------------")
+            print()
 
     def start(self):
         '''

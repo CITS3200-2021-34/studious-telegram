@@ -1,10 +1,12 @@
 from .questionmatcher import AbstractQuestionMatcher
 from typing import List
 
+
 class KeywordMatcher(AbstractQuestionMatcher):
     '''
     Class matching suggestions to a question, based off specific key words.
     '''
+
     def __init__(self):
         '''
         Constructor for the KeywordMatcher class.
@@ -26,6 +28,7 @@ class KeywordMatcher(AbstractQuestionMatcher):
         '''
         # create a dictionary mapping keywords to the subjects of previous questions
         pastQuestions = {"pointer": "How do I use pointers in C?", "code": "How do I code well?"}
+
         suggestions = []
 
         for word in question.split(" "):
@@ -33,5 +36,5 @@ class KeywordMatcher(AbstractQuestionMatcher):
 
             if (question != None):
                 suggestions.append(question)
-        
+
         return suggestions
