@@ -16,6 +16,10 @@ The project has been built with interfaces for the major components to allow for
 
 `main.py` builds the question matcher and the user interface, links them, and then triggers the UI's main input loop.
 
+The `qna` module is structured as shown below. The 'user' interacts with the `interface` that then translates the request to a form that the model can process. The model gives suggestions based on the question, and then these suggestions are transmitted  back to the 'user' by the `interface`.
+
+![Architecture](../docs/diagrams/architecture.drawio.svg)
+
 ### `AbstractQuestionMatcher`
 
 This defines the question matcher, the core of the application.
