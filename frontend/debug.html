@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="debug-styles.css" />
+        <title>Debug View</title>
+    </head>
+    <body>
+        <div class="nav">
+            <div class="form-group">
+                <label for="askquestion">
+                    Enter a subject-line for your question:
+                </label>
+                <input
+                    type="text"
+                    id="askquestion"
+                    name="askquestion"
+                    value="Lab 1 help"
+                    oninput="onQuestionInputChange()"
+                />
+            </div>
+        </div>
+        <div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Suggestion</th>
+                        <th>cosine</th>
+                        <th>Further info</th>
+                    </tr>
+                </thead>
+                <tbody id="suggestiontable">
+                    <tr>
+                        <td>Question</td>
+                        <td>1.0</td>
+                        <td>More information</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <script>
+            let fetchSuggestionsTimeout = null;
+
+            async function fetchSuggestions() {
+                const questionText =
+                    document.getElementById("askquestion").value;
+
+                const res = await fetch(`/api/question/${questionText}`);
+
+                if (!res.ok) {
+                    return;
+                }
+
+                const data = await res.json();
+
+                const matches = data.matches;
+
+                suggestionTableBody = document.getElementById("suggestiontable");
+
+                suggestionTableBody.innerHTML = "";
+
+                for (let i = 1; i <= matches.length; i++) {
+                    let suggestionRowElement = document.createElement("tr");
+
+                    let suggestionTextElement = document.createElement("td");
+                    suggestionTextElement.innerHTML = matches[i];
+
+                    let cosineElement = document.createElement("td");
+                    cosineElement.innerHTML = Math.random();
+
+                    suggestionRowElement.appendChild(suggestionTextElement);
+                    suggestionRowElement.appendChild(cosineElement);
+                    suggestionRowElement.appendChild(document.createElement("td"));
+
+                    suggestionTableBody.appendChild(suggestionRowElement);
+                }
+            }
+
+            function onQuestionInputChange() {
+                if (fetchSuggestionsTimeout) {
+                    clearTimeout(fetchSuggestionsTimeout);
+                }
+
+                fetchSuggestionsTimeout = setTimeout(fetchSuggestions, 190);
+            }
+
+            fetchSuggestions();
+        </script>
+    </body>
+</html>
