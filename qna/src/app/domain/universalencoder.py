@@ -56,4 +56,4 @@ class UniversalEncoder(AbstractQuestionMatcher):
         similarity_dict = sorted(similarity_dict.items(),
                                  key=operator.itemgetter(1), reverse=True)
 
-        return [k[0] for k in similarity_dict]
+        return similarity_dict

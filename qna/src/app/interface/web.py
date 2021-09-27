@@ -35,9 +35,15 @@ class MyServer(BaseHTTPRequestHandler):
         print(f"Got {len(suggestions)} suggestions")
 
         response = {
-            "matches": suggestions,
+            "matches": [],
             "question": question
         }
+
+        for suggestion in suggestions:
+            response["matches"].append({
+                "question": suggestion[0], 
+                "similarity": suggestion[1]
+            })
 
         self.send_response(200)
         self.send_header("Content-type", "application/json")

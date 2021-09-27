@@ -61,4 +61,4 @@ class Doc2Vec(AbstractQuestionMatcher):
         sim_dict = sorted(sim_dict.items(),
                           key=operator.itemgetter(1), reverse=True)
 
-        return [k[0] for k in sim_dict]
+        return sim_dict

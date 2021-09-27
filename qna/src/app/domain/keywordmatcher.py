@@ -37,4 +37,4 @@ class KeywordMatcher(AbstractQuestionMatcher):
             if (question != None):
                 suggestions.append(question)
 
-        return suggestions
+        return [(suggestion, 1.0) for suggestion in suggestions]
