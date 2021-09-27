@@ -21,6 +21,20 @@
                     oninput="onQuestionInputChange()"
                 />
             </div>
+            <div class="form-group">
+                <label for="similarity-slider">Min similarity:</label>
+                <input
+                    type="range"
+                    id="similarity-slider"
+                    name="similarity-slider"
+                    min="-1"
+                    max="1"
+                    value="0"
+                    step="0.01"
+                    oninput="onSimilaritySliderChange()"
+                />
+                <span id="slider-label"> 0.00 </span>
+            </div>
         </div>
         <div>
             <table>
@@ -46,6 +60,9 @@
                 const questionText =
                     document.getElementById("askquestion").value;
 
+                const similaritySliderValue =
+                    document.getElementById("similarity-slider").value;
+
                 const res = await fetch(`/api/question/${questionText}`);
 
                 if (!res.ok) {
@@ -56,11 +73,16 @@
 
                 const matches = data.matches;
 
-                suggestionTableBody = document.getElementById("suggestiontable");
+                suggestionTableBody =
+                    document.getElementById("suggestiontable");
 
                 suggestionTableBody.innerHTML = "";
 
                 for (let i = 0; i < matches.length; i++) {
+                    if (matches[i].similarity < similaritySliderValue) {
+                        break;
+                    }
+
                     let suggestionRowElement = document.createElement("tr");
 
                     let suggestionTextElement = document.createElement("td");
@@ -76,12 +98,25 @@
                 }
             }
 
-            function onQuestionInputChange() {
+            function queueFetch() {
                 if (fetchSuggestionsTimeout) {
                     clearTimeout(fetchSuggestionsTimeout);
                 }
 
                 fetchSuggestionsTimeout = setTimeout(fetchSuggestions, 190);
+            }
+
+            function onQuestionInputChange() {
+                queueFetch();
+            }
+
+            function onSimilaritySliderChange() {
+                const slider = document.getElementById("similarity-slider");
+                const sliderLabel = document.getElementById("slider-label");
+
+                sliderLabel.innerHTML = Math.round(slider.value * 100) / 100;
+
+                queueFetch();
             }
 
             fetchSuggestions();
