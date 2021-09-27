@@ -62,14 +62,14 @@
 
                 suggestionTableBody.innerHTML = "";
 
-                for (let i = 1; i <= matches.length; i++) {
+                for (let i = 0; i < matches.length; i++) {
                     let suggestionRowElement = document.createElement("tr");
 
                     let suggestionTextElement = document.createElement("td");
-                    suggestionTextElement.innerHTML = matches[i];
+                    suggestionTextElement.innerHTML = matches[i].question;
 
                     let cosineElement = document.createElement("td");
-                    cosineElement.innerHTML = Math.random();
+                    cosineElement.innerHTML = matches[i].similarity;
 
                     suggestionRowElement.appendChild(suggestionTextElement);
                     suggestionRowElement.appendChild(cosineElement);
