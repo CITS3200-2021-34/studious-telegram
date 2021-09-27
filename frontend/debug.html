@@ -27,15 +27,13 @@
                 <thead>
                     <tr>
                         <th>Suggestion</th>
-                        <th>cosine</th>
-                        <th>Further info</th>
+                        <th>Similarity</th>
                     </tr>
                 </thead>
                 <tbody id="suggestiontable">
                     <tr>
                         <td>Question</td>
                         <td>1.0</td>
-                        <td>More information</td>
                     </tr>
                 </tbody>
             </table>
@@ -73,7 +71,6 @@
 
                     suggestionRowElement.appendChild(suggestionTextElement);
                     suggestionRowElement.appendChild(cosineElement);
-                    suggestionRowElement.appendChild(document.createElement("td"));
 
                     suggestionTableBody.appendChild(suggestionRowElement);
                 }
