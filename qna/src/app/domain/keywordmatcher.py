@@ -1,5 +1,5 @@
 from .questionmatcher import AbstractQuestionMatcher
-from typing import List
+from typing import List, Tuple
 
 
 class KeywordMatcher(AbstractQuestionMatcher):
@@ -17,7 +17,7 @@ class KeywordMatcher(AbstractQuestionMatcher):
 
         print("Keyword matcher loaded")
 
-    def getSuggestions(self, question: str) -> List[str]:
+    def getSuggestions(self, question: str) -> List[Tuple[str, float]]:
         '''
         Given a question, determines which question subjects contain the same 
         keywords and should be suggested.

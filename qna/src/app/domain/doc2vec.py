@@ -4,9 +4,8 @@ from gensim.models.doc2vec import Doc2Vec
 from nltk.tokenize import word_tokenize
 from scipy.spatial.distance import cosine
 import operator
-import numpy as np
 
-from typing import List
+from typing import List, Tuple
 
 
 class Doc2Vec(AbstractQuestionMatcher):
@@ -23,7 +22,7 @@ class Doc2Vec(AbstractQuestionMatcher):
         '''
         self.__questions = questions
 
-    def getSuggestions(self, question: str) -> List[str]:
+    def getSuggestions(self, question: str) -> List[Tuple[str, float]]:
         '''
         Determines question suggestions for a given question, based on the 
         similarity of their subject-line.

@@ -4,7 +4,7 @@ from sentence_transformers import SentenceTransformer
 from scipy.spatial.distance import cosine
 import operator
 
-from typing import List
+from typing import List, Tuple
 
 class SentBERT(AbstractQuestionMatcher):
     '''
@@ -23,7 +23,7 @@ class SentBERT(AbstractQuestionMatcher):
         self.__question_list = list(questions.keys())
         self.__sentence_embeddings = self.__model.encode(self.__question_list)
 
-    def getSuggestions(self, question: str) -> List[str]:
+    def getSuggestions(self, question: str) -> List[Tuple[str, float]]:
         '''
         Determines question suggestions for a given question, based on the 
         similarity of their subject-line.
