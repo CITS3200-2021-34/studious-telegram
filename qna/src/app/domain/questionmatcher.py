@@ -9,5 +9,5 @@ class AbstractQuestionMatcher(ABC):
     all abstract methods."""
 
     @abstractmethod
-    def getSuggestions(self, question: str) -> List[Tuple[str, float]]:
+    def getSuggestions(self, question: str, text_vec: bool) -> List[Tuple[str, float]]:
         pass

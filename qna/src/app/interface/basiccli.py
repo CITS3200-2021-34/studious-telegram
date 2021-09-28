@@ -1,4 +1,7 @@
+from ..parser import write_to_json
+from ..parser.parser import preprocess
 from ..domain import AbstractQuestionMatcher
+from ..domain import AbstractSummarisation
 from .userinterface import AbstractUserInterface
 import questionary
 
@@ -10,7 +13,7 @@ class BasicCLI(AbstractUserInterface):
     '''
     __matcher: AbstractQuestionMatcher = None
 
-    def __init__(self, matcher: AbstractQuestionMatcher, questions):
+    def __init__(self, matcher: AbstractQuestionMatcher, summariser: AbstractSummarisation, questions, target_model: str):
         '''
         Constructor for the BasicCLI class.
 
@@ -18,10 +21,15 @@ class BasicCLI(AbstractUserInterface):
         '''
         super().__init__()
         self.setQuestionMatcher(matcher)
+        self.setSummarisation(summariser)
         self.__questions = questions
+        self.__model = target_model
 
     def setQuestionMatcher(self, matcher: AbstractQuestionMatcher):
         self.__matcher = matcher
+
+    def setSummarisation(self, summariser: AbstractSummarisation):
+        self.__summariser = summariser
 
     def print_question(self, chosen_questions):
         '''
@@ -80,14 +88,16 @@ class BasicCLI(AbstractUserInterface):
             raise RuntimeError("Matcher has not been set.")
 
         while True:
-
+            '''
             year = questionary.select(
                 "What year do you want to search?",
                 choices=["2017", "2018", "2019"],
             ).ask()
             week = questionary.text("What semester week is this (1-12)?").ask()
-            question = questionary.text("What is your Question?").ask()
-            
+            '''
+            question = questionary.text(
+                "what is the title of your Question").ask()
+
             '''
             If the user does not ask a question i.e. presses enter with no questions,
             the program is exited. 
@@ -97,26 +107,76 @@ class BasicCLI(AbstractUserInterface):
                 break
 
             print("\nLoading Suggestions....\n")
-            suggestions = self.__matcher.getSuggestions(question)
+            suggestions, title_vec = self.__matcher.getSuggestions(
+                question, False)
 
             print(f'QUESTIONS: {question}\n')
-            
+
             for i in range(len(suggestions)):
                 if i >= 10:
                     break
-                print(f"{i + 1}: {suggestions[i]}")   
+                author = "Student"
+                suggested_question = suggestions[i]
+                if(self.__questions[suggested_question]['From'] == "chris.mcdonald@uwa.edu.au"):
+                    author = "Lecturer"
+                if(self.__questions[suggested_question]['From'] == "poster013@student.uwa.edu.au"):
+                    author = "Tutor"
+                print(f"{i + 1}: {suggestions[i]} ({author})")
             print("")
-
+            flag = False
             if questionary.confirm("Would you like to view these suggestions?").ask():
-                questionary.checkbox(
+                num = questionary.checkbox(
                     'Select questions',
-                    choices=
-                        suggestions[:10]
-                    ).ask()
+                    choices=suggestions[:10]
+                ).ask()
+                if len(num) != 0:
+                    flag = True
+                    self.print_question(num[0])
+                    self.print_answers(num[0])
+            if not flag:
+                body_text = questionary.text(
+                    "What is your question?").ask()
 
-                '''
-                show the user the contents 
-                '''     
+                if not body_text:
+                    print("\nThank you for using our nprogram :)\n")
+
+                else:
+                    summarisation = self.__summariser.getSummarisations(
+                        str(body_text))
+                    summarisation = question + summarisation
+                    suggestions, text_vec = self.__matcher.getSuggestions(
+                        summarisation)
+
+                    print(f'QUESTIONS: {question}\n')
+
+                    for i in range(len(suggestions)):
+                        if i >= 10:
+                            break
+                        author = "Student"
+                        suggested_question = suggestions[i]
+                        if(self.__questions[suggested_question]['From'] == "chris.mcdonald@uwa.edu.au"):
+                            author = "Lecturer"
+                        if(self.__questions[suggested_question]['From'] == "poster013@student.uwa.edu.au"):
+                            author = "Tutor"
+                        print(f"{i + 1}: {suggestions[i]} ({author})")
+                    print("")
+
+                    flag = False
+                    if questionary.confirm("Would you like to view these suggestions?").ask():
+                        num = questionary.checkbox(
+                            'Select questions',
+                            choices=suggestions[:10]
+                        ).ask()
+                        if len(num) != 0:
+                            flag = True
+                            self.print_question(num[0])
+                            self.print_answers(num[0])
+                    if not flag:
+                        title_vec = title_vec.numpy().tolist()
+                        text_vec = text_vec.numpy().tolist()
+                        write_to_json(question, body_text,
+                                      title_vec, text_vec, self.__model)
+
             if not questionary.confirm("Would you like to ask another question?").ask():
                 print("\nThank you for using our program :)\n")
                 break
