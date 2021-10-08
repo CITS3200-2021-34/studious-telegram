@@ -26,21 +26,35 @@ class UniversalEncoder(AbstractQuestionMatcher):
         self.__model = hub.load(self.MODULE_URL)
         self.__questions = questions
         self.__question_list = list(questions.keys())
-        #self.__sentence_embeddings = self.__model(self.__question_list)
+        # self.__sentence_embeddings = self.__model(self.__question_list)
 
-
-    def getSuggestions(self, question: str, text_vec=True) -> List[Tuple[str, float]]:
+    def getSuggestions(self, question: str, body: str) -> List[Tuple[str, float]]:
         '''
-        Determines question suggestions for a given question, based on the 
+        Determines question suggestions for a given question, based on the
         similarity of their subject-line.
 
         :param self: Instance of the UniversalEncoder object
         :param question: An element of the question dictionary
-        :return [k[0] for k in similarity_dict]: List of all questions from 
+        :return [k[0] for k in similarity_dict]: List of all questions from
             question dictionary ordered from most similar to least
         '''
-        # Pass the asked question into model to get embedding
-        question = preprocess(question)
+
+        # If we pass the model an empty question and body then return None
+        if(question == "" and body == ""):
+            return None
+
+        Embedding_type = ""  # This will be either 'Subject_vec' or 'Text_vec' depending on stage
+
+        # If we pass only the question, then find similarity of question only
+        if(question != "" and body == ""):
+            Embedding_type = 'Subject_vec'
+            question = preprocess(question)
+
+        # If we pass question and body, then combine them and find similarity
+        if(body != ""):
+            Embedding_type = 'Text_vec'
+            question = preprocess(question) + body
+
         query_embedding = self.__model([question])[0]
         query_embedding = tf.reshape(query_embedding, (-1, 1))
 
@@ -48,16 +62,10 @@ class UniversalEncoder(AbstractQuestionMatcher):
         # between this and the embedding of the asked question
         similarity_dict = {}
         for i, subject in enumerate(self.__questions.keys()):
-            if text_vec:
-                sentence_embedding = tf.reshape(
-                    self.__questions[subject]['Text_vec'], (-1, 1))
-                similarity_dict[self.__question_list[i]] = 1 - \
-                    cosine(sentence_embedding, query_embedding)
-            else:
-                sentence_embedding = tf.reshape(
-                    self.__questions[subject]['Subject_vec'], (-1, 1))
-                similarity_dict[self.__question_list[i]] = 1 - \
-                    cosine(sentence_embedding, query_embedding)
+            sentence_embedding = tf.reshape(
+                self.__questions[subject][Embedding_type], (-1, 1))
+            similarity_dict[self.__question_list[i]] = 1 - \
+                cosine(sentence_embedding, query_embedding)
 
         # Order dictionary to a list, such that higher cosines are first
         similarity_dict = sorted(similarity_dict.items(),
