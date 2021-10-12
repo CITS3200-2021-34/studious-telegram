@@ -30,7 +30,7 @@ class SuggestionHandler(BaseHandler):
     def get(self, rawQuestion) -> None:
         question = urllib.parse.unquote(rawQuestion)
 
-        suggestions = self.questionMatcher.getSuggestions(question, False)
+        suggestions, _ = self.questionMatcher.getSuggestions(question, False)
 
         response = {
             "matches": [],
