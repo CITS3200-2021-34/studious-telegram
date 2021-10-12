@@ -22,7 +22,7 @@ class App():
 
         # Find the first file that contains the target model
         else:
-            flag = False
+            flag = False  # used to confirm file exists if true
             for file in os.listdir('app/storage'):
                 if target_model in file:
                     file = f'app/storage/{file}'
@@ -44,7 +44,8 @@ class App():
             raise ValueError(f"targetModel ({target_model}) is not valid")
 
         if target_interface == "cli":
-            summariser = T5()
+            # max_length = 50, min_length = 5, model_name = 't5-small' | 't5-base'
+            summariser = T5(50, 5, 't5-small')
             self.__interface = BasicCLI(
                 questionMatcher, summariser, questions, target_model)
         elif target_interface == "web":
