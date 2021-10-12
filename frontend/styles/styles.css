@@ -134,10 +134,11 @@ textarea {
 
 .suggestion {
   padding: 0.5em;
-  /* text-align: center; */
   position: relative;
   border-radius: 1em;
   transition: transform 0.1s ease-in;
+  display: flex;
+  /* margin-left: auto; */
 }
 
 .suggestion::after {
@@ -167,6 +168,10 @@ textarea {
 
 .suggestion:active::after {
   opacity: 0.8 !important;
+}
+
+.badges {
+  float: right;
 }
 
 .modal {
