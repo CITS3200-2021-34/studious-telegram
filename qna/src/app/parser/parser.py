@@ -1,15 +1,21 @@
-import time
-import numpy as np
+import nltk  # Libary used in preprocessing
+import tensorflow_hub as hub  # Load Universal Encoder model
+import json  # Construct and use json methods
+import time  # Test time of code
+import numpy as np  # Help construct serialised array for json
 from nltk.stem import WordNetLemmatizer
-from nltk.tokenize import word_tokenize
-import nltk
-import string
+from nltk.tokenize import word_tokenize  # Splits data into list of tokens
+import string  # Used in preprocessing
+import email  # Used to construct and extract from email formated text
+import logging
+import tensorflow as tf                                                 #
 from transformers import T5ForConditionalGeneration, T5Tokenizer
-import email
-import tensorflow as tf
-import tensorflow_hub as hub
-import json
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Remove TensorFlow Warnings
+
 from.json_loader import JsonLoader
+
+tf.get_logger().setLevel(logging.ERROR)
 
 
 def parseQuestionsAnswersFromFile(filePath: str, target_model: str):
@@ -62,33 +68,7 @@ def getPostsFromThreads(threads, target_model):
     :return None:
     '''
 
-    # Load in the models
-    module_url = "https://tfhub.dev/google/universal-sentence-encoder/4"
-    model = hub.load(module_url)
-    model2 = T5ForConditionalGeneration.from_pretrained("t5-small")
-    tokenizer = T5Tokenizer.from_pretrained("t5-small")
-    print("Finished Loading models")
-
-    # Get the unique questions from the subject line.
-    # Summarise the body of the question as well.
-    s = set()
-    preprocessed_subjects = []
-    preprocessed_texts = []
-    for i in threads:
-        subject = email.message_from_string(i)['Subject']
-        if subject not in s:
-            p = preprocess(subject)
-            text = email.message_from_string(i)._payload
-            preprocessed_subjects.append(p)
-            sum = get_summarisation(text, tokenizer, model2)
-            final_sum = p + sum
-            preprocessed_texts.append(final_sum)
-        s.add(subject)
-
-    # Get the embeddings for each the subject and the text
-    embeddings_subjects = model(preprocessed_subjects)
-    embeddings_texts = model(preprocessed_texts)
-    print("Finished Embeddings")
+    embeddings_subjects, embeddings_texts = helper_preprocess(threads)
 
     # Stores each question and answer into a json format and writes it to file
     # based on the target_model.
@@ -98,11 +78,15 @@ def getPostsFromThreads(threads, target_model):
 
         msg = email.message_from_string(i)
 
+        # If the subject line is not already inside the dictionary get embeddings
         if msg['Subject'] not in questions.keys():
 
+            # convert to a json serialized format
             text_vec = embeddings_texts[j].numpy().tolist()
+            # convert to a json serialized format
             vec = embeddings_subjects[j].numpy().tolist()
 
+            # Stores the question into correspoding key-value pair
             questions[msg['Subject']] = {'Date': msg['Date'],
                                          'To': msg['To'],
                                          'Received': msg['Received'],
@@ -116,6 +100,7 @@ def getPostsFromThreads(threads, target_model):
                                          }
             j += 1
         else:
+            # Stores the answers to questions into its corresponding question key-value pair.
             questions[msg['Subject']]['Answers'].append({'Date': msg['Date'],
                                                          'To': msg['To'],
                                                          'Received': msg['Received'],
@@ -125,6 +110,7 @@ def getPostsFromThreads(threads, target_model):
                                                          'X-img': msg['X-img'],
                                                          'Text': msg._payload,
                                                          })
+    # Create a new file and store it inside storage folder. Name of json file is target model selected.
     file_path = f'app/storage/questions2017_{target_model}.json'
     with open(file_path, 'w') as outfile:
         json.dump(questions, outfile)
@@ -132,14 +118,60 @@ def getPostsFromThreads(threads, target_model):
     return file_path
 
 
-def get_summarisation(data, tokenizer, model):
+def helper_preprocess(threads):
+
+    # Load in the models
+    module_url = "https://tfhub.dev/google/universal-sentence-encoder/4"
+    model = hub.load(module_url)
+    sum_model = T5ForConditionalGeneration.from_pretrained("t5-small")
+    tokenizer = T5Tokenizer.from_pretrained("t5-small")
+
+    # Get the unique questions from the subject line.
+    # Summarise the body of the question as well.
+    s = set()
+    preprocessed_subjects = []
+    preprocessed_texts = []
+    begin = time.time()
+    for i in threads:
+        subject = email.message_from_string(i)['Subject']
+        if subject not in s:
+            p = preprocess(subject)
+            text = email.message_from_string(i)._payload
+            preprocessed_subjects.append(p)
+            sum = get_summarisation(text, sum_model, tokenizer)
+            sum_preprocess = preprocess(sum)
+            final_sum = p + sum_preprocess
+            preprocessed_texts.append(final_sum)
+        s.add(subject)
+    end = time.time()
+    print(f'Time to compelete preprocess {end-begin}')
+
+    # Get the embeddings for each the subject and the text
+    begin = time.time()
+    embeddings_subjects = model(preprocessed_subjects)  # for subject line
+    embeddings_texts = model(preprocessed_texts)  # for text body
+    end = time.time()
+    print(f'Time to compelete embedding {end-begin}')
+
+    return embeddings_subjects, embeddings_texts
+
+
+def get_summarisation(data, model, tokenizer):
+    '''
+    This method summarises the text body below 50 tokens (words)
+
+    @param: data  - the text body from a question/subject line.
+            model - the t5 text summarisation model to inference from
+    @retrun output_text - The below 50 summarised phrase/text.
+    '''
+
     input = tokenizer.encode(data, return_tensors="pt",
                              max_length=512, truncation=True)
     # generate the summarization output
     outputs = model.generate(
         input,
-        max_length=50,
-        min_length=30,
+        max_length=30,
+        min_length=5,
         length_penalty=2.0,
         num_beams=4,
         early_stopping=True)
@@ -148,6 +180,14 @@ def get_summarisation(data, tokenizer, model):
 
 
 def preprocess(data):
+    '''
+    Preprocessers the data by removing unnecessary words, 
+    punctuation and grammar. The data is condensed into 
+    only meaningful words/tokens used to input into models
+
+    @param data - the text/subject that will be preprocessed
+    @return preprocessed_text - The preprocessed text.
+    '''
 
     # Tokenize question and remove punctuation and lower strings
     data = word_tokenize(data)
@@ -161,7 +201,7 @@ def preprocess(data):
 
     # Remove stopwords as they don't add value to the sentence meaning
     # and select only the top 10 stop words.
-    # e.g. 'the' is not a valuable word
+    # e.g. 'but' is not a valuable word
     stopwords = nltk.corpus.stopwords.words('english')
     stopwords = stopwords[0:10]
     data = [i for i in data if i not in stopwords]
