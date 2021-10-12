@@ -1,87 +1,202 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>Help Forum</title>
+  <head>
+    <title>Help Forum</title>
 
-        <link rel="stylesheet" href="styles.css" />
-    </head>
+    <link rel="stylesheet" href="styles/styles.css" />
+  </head>
 
-    <body>
-        <div class="container">
-            <h1>Help Forum</h1>
-            <div class="card">
-                <div class="form-group">
-                    <label for="week"
-                        >What semester week are we in (1-12)?</label
-                    >
-                    <input type="text" id="week" name="week" />
-                </div>
-                <div class="form-group">
-                    <label for="askquestion"
-                        >Enter a subject-line for your question:</label
-                    >
-                    <input
-                        type="text"
-                        id="askquestion"
-                        name="askquestion"
-                        value="Lab 1 help"
-                        oninput="onQuestionInputChange()"
-                    />
-                </div>
-                <div class="form-group">
-                    <button onclick="getSuggestions()">Search</button>
-                </div>
-            </div>
-            <div class="card" id="suggestions"></div>
-
-            <script>
-                function onSuggestionClick(suggestionId) {
-                    console.log(suggestionId);
-                }
-
-                let fetchSuggestionsTimeout = null;
-
-                async function fetchSuggestions() {
-                    const weekText = document.getElementById("week").value;
-                    const questionText =
-                        document.getElementById("askquestion").value;
-
-                    const res = await fetch(`/api/question/${questionText}`);
-
-                    if (!res.ok) {
-                        return;
-                    }
-
-                    const data = await res.json();
-
-                    const matches = data.matches;
-
-                    suggestionCardElement =
-                        document.getElementById("suggestions");
-
-                    suggestionCardElement.innerHTML = "";
-
-                    const num = 10;
-                    for (let i = 0; i < num; i++) {
-                        let suggestionElement = document.createElement("div");
-                        suggestionElement.innerHTML = matches[i].question;
-                        suggestionElement.classList.add("suggestion");
-                        suggestionElement.onclick = () => onSuggestionClick(i);
-
-                        suggestionCardElement.appendChild(suggestionElement);
-                    }
-                }
-
-                function onQuestionInputChange() {
-                    if (fetchSuggestionsTimeout) {
-                        clearTimeout(fetchSuggestionsTimeout);
-                    }
-
-                    fetchSuggestionsTimeout = setTimeout(fetchSuggestions, 190);
-                }
-
-                fetchSuggestions();
-            </script>
+  <body>
+    <div class="container">
+      <h1>Help Forum</h1>
+      <div class="row">
+        <div class="card card--question">
+          <h2>Question</h2>
+          <div class="form-group">
+            <label for="askquestion">Subject</label>
+            <input
+              type="text"
+              id="askquestion"
+              name="askquestion"
+              placeholder="Question Subject"
+              oninput="onQuestionInputChange()"
+            />
+          </div>
+          <div class="form-group">
+            <label for="question-body">Body</label>
+            <textarea type="text" id="question-body" name="question-body" placeholder="Question Body"></textarea>
+          </div>
+          <div class="form-group form-group--inline">
+            <button class="btn btn--green push-right" onclick="submitQuestion()">Submit</button>
+          </div>
         </div>
-    </body>
+        <div class="card card--suggestions">
+          <h2>Suggestions</h2>
+          <div id="suggestions"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal" id="question-modal" onclick="closeQuestionModal()">
+      <div class="modal--content" onclick="event.stopPropagation()">
+        <div class="modal--heading">
+          <h2 id="question-modal--subject">How do I use pointers?</h2>
+        </div>
+        <div class="modal--body">
+          <p id="question-modal--body">
+            My Modal body! Lorem ipsum dolor sit, amet consectetur adipisicing elit. Doloremque assumenda earum sit
+            veritatis ratione officiis velit nemo incidunt doloribus vero, aspernatur in eligendi corporis amet iusto
+            fugiat quasi consequuntur sapiente hic tenetur eius dolore deserunt dolores voluptatibus! Voluptatum fugit
+            nostrum inventore. Minus dicta quaerat nesciunt quisquam vitae enim, aspernatur inventore?
+          </p>
+        </div>
+        <div class="modal--footer">
+          <div class="form-group form-group--inline">
+            <button class="btn btn--green" onclick="showAnswers()">View answers</button>
+            <button class="btn push-right" onclick="closeQuestionModal()">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal" id="answer-modal" onclick="closeAnswerModal()">
+      <div class="modal--content" onclick="event.stopPropagation()">
+        <div class="modal--heading">
+          <h2 id="answer-modal--subject">How do I use pointers?</h2>
+        </div>
+        <div class="modal--body" id="answer-modal--body"></div>
+        <div class="modal--footer">
+          <div class="form-group form-group--inline">
+            <button class="btn push-right" onclick="closeAnswerModal()">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="version-data">v0.5.0</div>
+    <script>
+      const newQuestionSubjectElement = document.getElementById("askquestion");
+      const newQuestionBodyElement = document.getElementById("question-body");
+
+      const suggestionCardElement = document.getElementById("suggestions");
+
+      const modalElement = document.getElementById("question-modal");
+      const modalSubjectElement = document.getElementById("question-modal--subject");
+      const modalBodyElement = document.getElementById("question-modal--body");
+
+      const answerModalElement = document.getElementById("answer-modal");
+      const answerModalSubjectElement = document.getElementById("answer-modal--subject");
+      const answerModalBodyElement = document.getElementById("answer-modal--body");
+
+      let modalData = null;
+
+      async function onSuggestionClick(suggestionSubject) {
+        const res = await fetch(`/api/question/get/${encodeURIComponent(suggestionSubject)}`);
+
+        if (!res.ok) {
+          return;
+        }
+
+        modalData = await res.json();
+
+        modalSubjectElement.innerHTML = modalData.subject;
+        modalBodyElement.innerHTML = modalData.body;
+
+        answerModalSubjectElement.innerHTML = modalData.subject;
+        answerModalBodyElement.innerHTML = "";
+
+        for (const answer of modalData.answers) {
+          const answerElement = document.createElement("p");
+          answerElement.innerHTML = answer;
+          answerModalBodyElement.appendChild(answerElement);
+        }
+
+        if (modalData.answers.length === 0) {
+          const noAnswersElement = document.createElement("p");
+
+          noAnswersElement.innerHTML = "There are no answers for this question.";
+
+          answerModalBodyElement.appendChild(noAnswersElement);
+        }
+
+        openQuestionModal();
+      }
+
+      function showAnswers() {
+        closeQuestionModal();
+        openAnswerModal();
+      }
+
+      let fetchSuggestionsTimeout = null;
+
+      async function fetchSuggestions() {
+        const questionSubject = newQuestionSubjectElement.value || "Help";
+
+        const res = await fetch(`/api/suggestion/${encodeURIComponent(questionSubject)}`);
+
+        if (!res.ok) {
+          return;
+        }
+
+        const data = await res.json();
+
+        const matches = data.matches;
+
+        suggestionCardElement.innerHTML = "";
+
+        const num = 10;
+        for (let i = 0; i < num; i++) {
+          let suggestionElement = document.createElement("div");
+          suggestionElement.innerHTML = matches[i].question;
+          suggestionElement.classList.add("suggestion");
+          suggestionElement.onclick = () => onSuggestionClick(matches[i].question);
+
+          suggestionCardElement.appendChild(suggestionElement);
+        }
+      }
+
+      function onQuestionInputChange() {
+        if (fetchSuggestionsTimeout) {
+          clearTimeout(fetchSuggestionsTimeout);
+        }
+
+        fetchSuggestionsTimeout = setTimeout(fetchSuggestions, 190);
+      }
+
+      fetchSuggestions();
+
+      function openQuestionModal() {
+        modalElement.style.display = "flex";
+      }
+
+      function closeQuestionModal() {
+        modalElement.style.display = "none";
+      }
+
+      function openAnswerModal() {
+        answerModalElement.style.display = "flex";
+      }
+
+      function closeAnswerModal() {
+        answerModalElement.style.display = "none";
+      }
+
+      async function submitQuestion() {
+        const res = await fetch(`/api/question/new`, {
+          method: "POST",
+          body: JSON.stringify({
+            subject: newQuestionSubjectElement.value,
+            body: newQuestionBodyElement.value,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!res.ok) {
+          return;
+        }
+
+        newQuestionSubjectElement.value = "";
+        newQuestionBodyElement.value = "";
+      }
+    </script>
+  </body>
 </html>

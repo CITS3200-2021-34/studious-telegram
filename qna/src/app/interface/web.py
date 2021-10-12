@@ -1,38 +1,36 @@
-from http.server import BaseHTTPRequestHandler, HTTPServer
-from socketserver import ThreadingMixIn
-from ..domain.questionmatcher import AbstractQuestionMatcher
-from urllib.parse import unquote
+from typing import Awaitable, List, Optional
+import urllib.parse
 import json
 
+import tornado.ioloop
+import tornado.web
+
 from .userinterface import AbstractUserInterface
+from ..domain.questionmatcher import AbstractQuestionMatcher
+from ..domain.question import Question
 
-class MyServer(BaseHTTPRequestHandler):
-    matcher: AbstractQuestionMatcher = None
 
-    def do_GET(self):
-        request_path = self.path.split('/')
-
-        print(f"Received request: {request_path}")
-
-        if len(request_path) != 4:
-            self.send_response(404)
-            self.send_header("Content-type", "text/plain")
-            self.end_headers()
-            self.wfile.write(bytes("Page not found.", "utf-8"))
+class BaseHandler(tornado.web.RequestHandler):
+    def prepare(self) -> Optional[Awaitable[None]]:
+        if "Content-Type" not in self.request.headers:
+            self.json_args = None
             return
 
-        if request_path[1] != "api" or request_path[2] != "question" or request_path[3] == "":
-            self.send_response(404)
-            self.send_header("Content-type", "text/plain")
-            self.end_headers()
-            self.wfile.write(bytes("Page not found.", "utf-8"))
+        if self.request.headers["Content-Type"] != "application/json":
+            self.json_args = None
             return
 
-        question = unquote(request_path[-1])
+        self.json_args = json.loads(self.request.body)
 
-        print(f"Getting suggestions for {question}")
-        suggestions = self.matcher.getSuggestions(question)
-        print(f"Got {len(suggestions)} suggestions")
+
+class SuggestionHandler(BaseHandler):
+    def initialize(self, questionMatcher: AbstractQuestionMatcher) -> None:
+        self.questionMatcher = questionMatcher
+
+    def get(self, rawQuestion) -> None:
+        question = urllib.parse.unquote(rawQuestion)
+
+        suggestions = self.questionMatcher.getSuggestions(question, False)
 
         response = {
             "matches": [],
@@ -41,38 +39,83 @@ class MyServer(BaseHTTPRequestHandler):
 
         for suggestion in suggestions:
             response["matches"].append({
-                "question": suggestion[0], 
+                "question": suggestion[0],
                 "similarity": suggestion[1]
             })
 
-        self.send_response(200)
-        self.send_header("Content-type", "application/json")
-        self.end_headers()
-        self.wfile.write(bytes(json.dumps(response), "utf-8"))
+        self.write(response)
 
-class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
-    """This class allows to handle requests in separated threads.
-        No further content needed, don't touch this. """
-class WebInterface(AbstractUserInterface):
 
-    def __init__(self, matcher) -> None:
+class NewQuestionHandler(BaseHandler):
+    def initialize(
+            self,
+            questionMatcher: AbstractQuestionMatcher,
+            questions: List[Question]) -> None:
+        self.questionMatcher = questionMatcher
+        self.questions = questions
+
+    async def post(self) -> None:
+        if self.json_args is None:
+            self.set_status(400)
+            return
+
+        newQuestion = Question(
+            self.json_args['subject'],
+            self.json_args['body'],
+            [])
+
+        self.questionMatcher.addQuestions([newQuestion])
+
+        self.questions.append(newQuestion)
+
+        self.set_status(200)
+
+
+class GetQuestionHandler(BaseHandler):
+    def initialize(self, questions: List[Question]) -> None:
+        self.questions = questions
+
+    async def get(self, rawQuestion) -> None:
+        question = urllib.parse.unquote(rawQuestion)
+
+        for pastQuestion in self.questions:
+            if pastQuestion.subject == question:
+                self.write({
+                    "subject": pastQuestion.subject,
+                    "body": pastQuestion.body,
+                    "answers": pastQuestion.answers
+                })
+                return
+
+        self.set_status(404)
+
+
+class TornadoWebInterface(AbstractUserInterface):
+    def __init__(
+            self,
+            port,
+            questionMatcher: AbstractQuestionMatcher,
+            questions: List[Question]) -> None:
         super().__init__()
-        MyServer.matcher = matcher
 
-    def setQuestionMatcher(self, matcher: AbstractQuestionMatcher):
-        pass
+        self.__port = port
+        self.__questionMatcher = questionMatcher
+        self.__questions = questions
 
-    def start(self):
-        hostname = "0.0.0.0"
-        server_port = 8080
+    def start(self) -> None:
+        app = tornado.web.Application([(r"/api/suggestion/([^/]+)",
+                                      SuggestionHandler,
+                                      {"questionMatcher": self.__questionMatcher}),
+            (r"/api/question/new",
+             NewQuestionHandler,
+             {"questionMatcher": self.__questionMatcher,
+              "questions": self.__questions}),
+            (r"/api/question/get/([^/]+)",
+             GetQuestionHandler,
+             {"questions": self.__questions}),
+        ])
 
-        webServer = ThreadedHTTPServer((hostname, server_port), MyServer)
-        print(f"Server started http://{hostname}:{server_port}")
+        app.listen(self.__port)
 
-        try:
-            webServer.serve_forever()
-        except KeyboardInterrupt:
-            webServer.socket.close()
-
-        webServer.server_close()
-        print("Server stopped.")
+        print(f"Server started: http://localhost:{self.__port}")
+        tornado.ioloop.IOLoop.current().start()
