@@ -1,18 +1,10 @@
-import time
-import numpy as np
-from nltk.stem import WordNetLemmatizer
-from nltk.tokenize import word_tokenize
-import nltk
-import string
-from transformers import T5ForConditionalGeneration, T5Tokenizer
+from typing import Dict, List, Tuple
 import email
-import tensorflow as tf
-import tensorflow_hub as hub
-import json
-from.json_loader import JsonLoader
+
+from ..domain.question import Question
 
 
-def parseQuestionsAnswersFromFile(filePath: str, target_model: str):
+def parseQuestionsAnswersFromFile(filePath: str) -> List[Question]:
     '''
     Returns a dictionary containing each question in filePath, and a
     dictionary containing each answer in filePath.
@@ -22,9 +14,7 @@ def parseQuestionsAnswersFromFile(filePath: str, target_model: str):
     :return answers: Dictionary of answer threads
     '''
     threads = parseThreadsFromFile(filePath)
-    file = getPostsFromThreads(threads, target_model)
-    json = JsonLoader(file)
-    return json.read_data()
+    return getPostsFromThreads(threads)
 
 
 def parseThreadsFromFile(filePath: str):
@@ -53,7 +43,7 @@ def parseThreadsFromFile(filePath: str):
     return threads
 
 
-def getPostsFromThreads(threads, target_model):
+def getPostsFromThreads(threads) -> List[Question]:
     '''
     For each item in a given threads list, a list containing all contents
     is stored in a json formatted dictionary to be stored in a JSON file
@@ -62,74 +52,26 @@ def getPostsFromThreads(threads, target_model):
     :return None:
     '''
 
-    # Load in the models
-    module_url = "https://tfhub.dev/google/universal-sentence-encoder/4"
-    model = hub.load(module_url)
-    model2 = T5ForConditionalGeneration.from_pretrained("t5-small")
-    tokenizer = T5Tokenizer.from_pretrained("t5-small")
-    print("Finished Loading models")
-
-    # Get the unique questions from the subject line.
-    # Summarise the body of the question as well.
-    s = set()
-    preprocessed_subjects = []
-    preprocessed_texts = []
-    for i in threads:
-        subject = email.message_from_string(i)['Subject']
-        if subject not in s:
-            p = preprocess(subject)
-            text = email.message_from_string(i)._payload
-            preprocessed_subjects.append(p)
-            sum = get_summarisation(text, tokenizer, model2)
-            final_sum = p + sum
-            preprocessed_texts.append(final_sum)
-        s.add(subject)
-
-    # Get the embeddings for each the subject and the text
-    embeddings_subjects = model(preprocessed_subjects)
-    embeddings_texts = model(preprocessed_texts)
-    print("Finished Embeddings")
-
     # Stores each question and answer into a json format and writes it to file
     # based on the target_model.
-    questions = {}
-    j = 0
+    added_questions = set()
+    questions: Dict[str, Question] = {}
+
     for i in threads:
 
         msg = email.message_from_string(i)
 
-        if msg['Subject'] not in questions.keys():
+        subject = msg['Subject']
+        body = msg.get_payload()
 
-            text_vec = embeddings_texts[j].numpy().tolist()
-            vec = embeddings_subjects[j].numpy().tolist()
+        if subject not in added_questions:
+            added_questions.add(subject)
 
-            questions[msg['Subject']] = {'Date': msg['Date'],
-                                         'To': msg['To'],
-                                         'Received': msg['Received'],
-                                         'Subject_vec': vec,
-                                         'From': msg['From'],
-                                         'X-smile': msg['X-smile'],
-                                         'X-img': msg['X-img'],
-                                         'Text': msg._payload,
-                                         'Text_vec': text_vec,
-                                         'Answers': [],
-                                         }
-            j += 1
+            questions[subject] = Question(subject, body, [])
         else:
-            questions[msg['Subject']]['Answers'].append({'Date': msg['Date'],
-                                                         'To': msg['To'],
-                                                         'Received': msg['Received'],
-                                                         'Subject': msg['Subject'],
-                                                         'From': msg['From'],
-                                                         'X-smile': msg['X-smile'],
-                                                         'X-img': msg['X-img'],
-                                                         'Text': msg._payload,
-                                                         })
-    file_path = f'app/storage/questions2017_{target_model}.json'
-    with open(file_path, 'w') as outfile:
-        json.dump(questions, outfile)
-    print("Finished loading Json...")
-    return file_path
+            questions[subject].answers += [body]
+
+    return list(questions.values())
 
 
 def get_summarisation(data, tokenizer, model):
@@ -145,25 +87,3 @@ def get_summarisation(data, tokenizer, model):
         early_stopping=True)
     # just for debugging
     return tokenizer.decode(outputs[0])
-
-
-def preprocess(data):
-
-    # Tokenize question and remove punctuation and lower strings
-    data = word_tokenize(data)
-    data = [i for i in data if i not in string.punctuation]
-    data = [i.lower() for i in data]
-
-    # Convert words to stem form
-    # e.g. 'playing' is converted to 'play'
-    lemmatizer = WordNetLemmatizer()
-    data = [lemmatizer.lemmatize(i) for i in data]
-
-    # Remove stopwords as they don't add value to the sentence meaning
-    # and select only the top 10 stop words.
-    # e.g. 'the' is not a valuable word
-    stopwords = nltk.corpus.stopwords.words('english')
-    stopwords = stopwords[0:10]
-    data = [i for i in data if i not in stopwords]
-
-    return " ".join(data)

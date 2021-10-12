@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import List, Tuple
 
+from .question import Question
+
 
 class AbstractQuestionMatcher(ABC):
     """Abstract question matcher interface.
@@ -9,5 +11,11 @@ class AbstractQuestionMatcher(ABC):
     all abstract methods."""
 
     @abstractmethod
-    def getSuggestions(self, question: str, text_vec: bool) -> List[Tuple[str, float]]:
+    def getSuggestions(self, question: str,
+                       text_vec: bool) -> List[Tuple[str, float]]:
+        pass
+
+    @abstractmethod
+    def addQuestions(self, questions: List[Question]) -> None:
+        """Adds the given question to the Question Matcher so it can be returned as a suggestion."""
         pass
