@@ -77,6 +77,77 @@ class BasicCLI(AbstractUserInterface):
             print("---------------------------------------------")
             print()
 
+    def get_first_suggestions(self, question: str):
+        '''
+        This method finds the suggestion based of the
+        subject title only
+
+        @param  question - the subject title
+        @return text_vec - the embedding of the subject
+                top_suggestions - the top suggestions above threshold
+        '''
+        suggestions, title_vec = self.__matcher.getSuggestions(
+            question, "")
+        print(f'QUESTIONS: {question}\n')
+        top_questions = []
+        for i, suggestion in enumerate(suggestions):
+            if i >= 10:
+                break
+            if(suggestion[1] < 0.6):
+                pass
+            else:
+                author = "Student"
+                suggested_question = suggestion[0]
+                top_questions.append(suggested_question)
+                if(self.__questions[suggested_question]['From'] == "chris.mcdonald@uwa.edu.au"):
+                    author = "Lecturer"
+                if(self.__questions[suggested_question]['From'] == "poster013@student.uwa.edu.au"):
+                    author = "Tutor"
+                print(f"{i + 1}: {suggestions[i]} ({author})")
+        if len(top_questions) == 0:
+            print('No quality matches were found.')
+        print("")
+        return title_vec, top_questions
+
+    def get_second_suggestions(self, question: str, body_text: str):
+        '''
+        This method find the suggested questions based of both the
+        question and the subject line
+
+        @param  question - the question 
+                body_text - the question body
+        @return text_vec - the embedding of the question + subject
+                top_suggestions - the top suggestions above threshold
+        '''
+
+        # Summarise the response, and find the embedding
+        summarisation = self.__summariser.getSummarisations(
+            body_text)
+        suggestions, text_vec = self.__matcher.getSuggestions(question,
+                                                              summarisation)
+
+        # show the top 10 suggestions above threshold
+        top_questions = []
+        print(f'QUESTIONS: {question}\n')
+        for i, suggestion in enumerate(suggestions):
+            if i >= 10:
+                break
+            if(suggestion[1] < 0.3):
+                pass
+            else:
+                author = "Student"
+                suggested_question = suggestion[0]
+                top_questions.append(suggested_question)
+                if(self.__questions[suggested_question]['From'] == "chris.mcdonald@uwa.edu.au"):
+                    author = "Lecturer"
+                if(self.__questions[suggested_question]['From'] == "poster013@student.uwa.edu.au"):
+                    author = "Tutor"
+                print(f"{i + 1}: {suggestions[i]} ({author})")
+        if len(top_questions) == 0:
+            print('No quality matches were found.')
+        print("")
+        return text_vec, top_questions
+
     def start(self):
         '''
         Prints the top 10 question suggestions, based on the user's command 
@@ -87,98 +158,59 @@ class BasicCLI(AbstractUserInterface):
         if self.__matcher == None:
             raise RuntimeError("Matcher has not been set.")
 
+        empty = False  # if the string by the user is empty set flag
         while True:
-            '''
-            year = questionary.select(
-                "What year do you want to search?",
-                choices=["2017", "2018", "2019"],
-            ).ask()
-            week = questionary.text("What semester week is this (1-12)?").ask()
-            '''
+
             question = questionary.text(
                 "what is the title of your Question").ask()
 
-            '''
-            If the user does not ask a question i.e. presses enter with no questions,
-            the program is exited. 
-            '''
             if question == "":
+                empty = True
+                print("ERROR : String can't be empty.")
                 pass
 
             else:
                 print("\nLoading Suggestions....\n")
-                suggestions, title_vec = self.__matcher.getSuggestions(
-                    question, "")
-
-                print(f'QUESTIONS: {question}\n')
-                top_questions = []
-                for i in range(len(suggestions)):
-                    if i >= 10:
-                        break
-                    if(suggestions[i][1] < 0.6):
-                        pass
-                    else:
-                        author = "Student"
-                        suggested_question = suggestions[i][0]
-                        top_questions.append(suggested_question)
-                        if(self.__questions[suggested_question]['From'] == "chris.mcdonald@uwa.edu.au"):
-                            author = "Lecturer"
-                        if(self.__questions[suggested_question]['From'] == "poster013@student.uwa.edu.au"):
-                            author = "Tutor"
-                        print(f"{i + 1}: {suggestions[i]} ({author})")
-                print("")
+                title_vec, top_questions = self. get_first_suggestions(
+                    question)
 
                 confirm = False
-                if questionary.confirm("Would you like to view these suggestions? (Select 1 suggestion only)").ask():
+                if len(top_questions) != 0 and questionary.confirm("Would you like to view these suggestions? (Select 1 suggestion only)").ask():
                     num = questionary.checkbox(
                         'Select questions',
                         choices=top_questions
                     ).ask()
                     if len(num) != 0:
-                        flag = True
+                        confirm = True
                         question = num[0]
                         self.print_question(question)
                         self.print_answers(question)
 
                 # If the user declines the suggestions, prompt user to write a body to the question.
                 if not confirm:
-                    body_text = ""
-                    while(body_text == "" and body_text != 'q'):
+                    while(True):
                         body_text = questionary.text(
                             "What is your question?").ask()
+                        if(body_text == 'q'):
+                            break
+                        if(body_text == ""):
+                            print("ERROR : String can't be empty.")
+
+                        if(body_text != ""):
+                            break
 
                     if body_text == 'q':  # allow user to quit the prompt
                         print("\nThank you for using our program :)\n")
                         break
 
-                    # Summarise the response, and find the embedding
-                    summarisation = self.__summariser.getSummarisations(
-                        body_text)
-                    suggestions, text_vec = self.__matcher.getSuggestions(question,
-                                                                          summarisation)
-
-                    # show the top 10 suggestions above threshold
-                    top_questions = []
-                    print(f'QUESTIONS: {question}\n')
-                    for i in range(len(suggestions)):
-                        if i >= 10:
-                            break
-                        if(suggestions[i][1] < 0.1):
-                            pass
-                        else:
-                            author = "Student"
-                            suggested_question = suggestions[i][0]
-                            top_questions.append(suggested_question)
-                            if(self.__questions[suggested_question]['From'] == "chris.mcdonald@uwa.edu.au"):
-                                author = "Lecturer"
-                            if(self.__questions[suggested_question]['From'] == "poster013@student.uwa.edu.au"):
-                                author = "Tutor"
-                            print(f"{i + 1}: {suggestions[i]} ({author})")
-                    print("")
+                    else:
+                        # get suggestions based off subject + text body
+                        text_vec, top_questions = self.get_second_suggestions(
+                            question, body_text)
 
                     # Ask the user whether they wish to view the suggestions
                     confirm = False
-                    if questionary.confirm("Would you like to view these suggestions? (Select 1 suggestion only)").ask():
+                    if len(top_questions) != 0 and questionary.confirm("Would you like to view these suggestions? (Select 1 suggestion only)").ask():
                         num = questionary.checkbox(
                             'Select questions',
                             choices=top_questions
@@ -189,12 +221,13 @@ class BasicCLI(AbstractUserInterface):
                             self.print_question(question)
                             self.print_answers(question)
                     if not confirm:
-                        # Write the response to the json file
+                        # Write the response to the json file if they wish to submit
                         title_vec = title_vec.numpy().tolist()
                         text_vec = text_vec.numpy().tolist()
                         write_to_json(question, body_text,
                                       title_vec, text_vec, self.__model)
 
-            if not questionary.confirm("Would you like to ask another question?").ask():
-                print("\nThank you for using our program :)\n")
-                break
+            if not empty:
+                if not questionary.confirm("Would you like to ask another question?").ask():
+                    print("\nThank you for using our program :)\n")
+                    break
