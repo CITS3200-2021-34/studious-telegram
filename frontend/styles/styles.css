@@ -134,10 +134,14 @@ textarea {
 
 .suggestion {
   padding: 0.5em;
-  /* text-align: center; */
   position: relative;
   border-radius: 1em;
   transition: transform 0.1s ease-in;
+  display: flex;
+  flex-direction: row;
+  text-align: left;
+  margin-left: auto;
+  justify-content: space-between;
 }
 
 .suggestion::after {

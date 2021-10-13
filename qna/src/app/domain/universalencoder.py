@@ -38,15 +38,17 @@ class UniversalEncoder(AbstractQuestionMatcher):
                                        for embedding in embeddings]
 
     def getSuggestions(self, question: str,
-                       text_vec=True) -> List[Tuple[str, float]]:
+                       text_vec=True) -> List[Tuple[str, float, List[str]]]:
         '''
         Determines question suggestions for a given question, based on the
         similarity of their subject-line.
 
         :param self: Instance of the UniversalEncoder object
         :param question: An element of the question dictionary
-        :return [k[0] for k in similarity_dict]: List of all questions from
-            question dictionary ordered from most similar to least
+        :returns:
+            - suggestions - A list of suggestion tuples containing the suggestion's subject string, 
+                    similarity value, and list of authors who have answered it
+            - query_embedding - The embedding value for the asked question
         '''
         # Pass the asked question into model to get embedding
         question = preprocess(question)
@@ -59,12 +61,24 @@ class UniversalEncoder(AbstractQuestionMatcher):
         for i, oldQuestion in enumerate(self.__questions):
             question_embedding = self.__question_embeddings[i]
 
+            # Determine level of answer approval
+            highest_author = []
+            
+            for author in oldQuestion.answer_authors:
+                # Note if the question has been answered by the lecturer
+                if author == "chris.mcdonald@uwa.edu.au" or author == "lecturer@uwa.edu.au":
+                    highest_author.append("lecturer")
+                # Note if the question has been answered by a tutor
+                if author == "poster023@student.uwa.edu.au" or author == "tutor@uwa.edu.au":
+                    highest_author.append("tutor")
+                # Else, not answered by lecturer or tutor, therefore no need to record author
+
             suggestions.append(
                 (oldQuestion.subject,
                  1 -
                  cosine(
                      question_embedding,
-                     query_embedding)))
+                     query_embedding), highest_author))
 
         # Order dictionary to a list, such that higher cosines are first
         suggestions.sort(key=operator.itemgetter(1), reverse=True)
