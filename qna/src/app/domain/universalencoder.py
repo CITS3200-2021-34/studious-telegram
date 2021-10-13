@@ -45,8 +45,10 @@ class UniversalEncoder(AbstractQuestionMatcher):
 
         :param self: Instance of the UniversalEncoder object
         :param question: An element of the question dictionary
-        :return [k[0] for k in similarity_dict]: List of all questions from
-            question dictionary ordered from most similar to least
+        :returns:
+            - suggestions - A list of suggestion tuples containing the suggestion's subject string, 
+                    similarity value, and list of authors who have answered it
+            - query_embedding - The embedding value for the asked question
         '''
         # Pass the asked question into model to get embedding
         question = preprocess(question)
@@ -66,14 +68,10 @@ class UniversalEncoder(AbstractQuestionMatcher):
                 # Note if the question has been answered by the lecturer
                 if author == "chris.mcdonald@uwa.edu.au" or author == "lecturer@uwa.edu.au":
                     highest_author.append("lecturer")
-                # If not answered by a lecturer, note if it has been answered by a tutor
+                # Note if the question has been answered by a tutor
                 if author == "poster023@student.uwa.edu.au" or author == "tutor@uwa.edu.au":
                     highest_author.append("tutor")
                 # Else, not answered by lecturer or tutor, therefore no need to record author
-
-
-
-               
 
             suggestions.append(
                 (oldQuestion.subject,
