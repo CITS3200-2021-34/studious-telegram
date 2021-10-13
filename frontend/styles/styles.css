@@ -138,7 +138,10 @@ textarea {
   border-radius: 1em;
   transition: transform 0.1s ease-in;
   display: flex;
-  /* margin-left: auto; */
+  flex-direction: row;
+  text-align: left;
+  margin-left: auto;
+  justify-content: space-between;
 }
 
 .suggestion::after {
@@ -168,10 +171,6 @@ textarea {
 
 .suggestion:active::after {
   opacity: 0.8 !important;
-}
-
-.badges {
-  float: right;
 }
 
 .modal {
