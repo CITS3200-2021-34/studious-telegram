@@ -146,15 +146,23 @@
         for (let i = 0; i < num; i++) {
           let suggestionElement = document.createElement("div");
           suggestionElement.innerHTML = matches[i].question;
-
-          // Adding badges to represent suggested quesitons that have been answered or approved by the unit's
-          // lecturer(s) or tutor(s)
-          suggestionElement.innerHTML += "&nbsp;&nbsp;&nbsp;";
           suggestionElement.innerHTML += "<div class=\"badges\">";
-          suggestionElement.innerHTML += "<i class=\"fas fa-check-circle\" style=\"color:green\"></i>";
-          suggestionElement.innerHTML += "<i class=\"fas fa-check-circle\" style=\"color:orange\"></i>";
-          suggestionElement.innerHTML += "<i class=\"far fa-check-circle\" style=\"color:green\"></i>";
+
+          // If the suggested question has been answered by the lecturer, add lecturer badge
+          if (matches[i].flags.includes("lecturer")) {
+            suggestionElement.innerHTML += "<i class=\"fas fa-check-circle\" style=\"color:green\"></i>";
+          }
+          // Otherwise, if the suggested question has been answered by the tutor, add tutor badge
+          if (matches[i].flags.includes("tutor")) {
+            suggestionElement.innerHTML += "<i class=\"fas fa-check-circle\" style=\"color:orange\"></i>";
+          }
+          // Add 'approved' answer feature...
+          // suggestionElement.innerHTML += "<div class=\"badges\">";
+          // suggestionElement.innerHTML += "<i class=\"far fa-check-circle\" style=\"color:green\"></i>";
+          // suggestionElement.innerHTML += "</div>";
+
           suggestionElement.innerHTML += "</div>";
+
 
           suggestionElement.classList.add("suggestion");
           suggestionElement.onclick = () => onSuggestionClick(matches[i].question);

@@ -40,7 +40,8 @@ class SuggestionHandler(BaseHandler):
         for suggestion in suggestions:
             response["matches"].append({
                 "question": suggestion[0],
-                "similarity": suggestion[1]
+                "similarity": suggestion[1], 
+                "flags": suggestion[2]
             })
 
         self.write(response)
@@ -62,6 +63,7 @@ class NewQuestionHandler(BaseHandler):
         newQuestion = Question(
             self.json_args['subject'],
             self.json_args['body'],
+            [], 
             [])
 
         self.questionMatcher.addQuestions([newQuestion])
