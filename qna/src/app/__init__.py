@@ -1,10 +1,7 @@
-from typing import List
-from .domain.question import Question
 from .interface import BasicCLI, TornadoWebInterface
 from .domain import UniversalEncoder, SentBERT, Doc2Vec, T5
 from .parser import parseQuestionsAnswersFromFile
 from .parser import old_parseQuestionsAnswersFromFile
-from pathlib import Path
 
 
 class App():

@@ -11,5 +11,5 @@ class AbstractSummarisation(ABC):
     '''
 
     @abstractmethod
-    def getSummarisations(self, question: str) -> List[str]:
+    def getSummarisation(self, question: str) -> List[str]:
         pass

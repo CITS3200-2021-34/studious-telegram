@@ -1,4 +1,5 @@
 from typing import List, Tuple
+from .t5 import T5
 import tensorflow as tf
 import tensorflow_hub as hub
 from scipy.spatial.distance import cosine
@@ -30,6 +31,7 @@ class UniversalEncoder(AbstractQuestionMatcher):
         self.__questions: List[Question] = []
         self.__question_embeddings = []
         self.__body_embeddings = []
+        self.__summariser = T5(50, 5, 't5-small')
 
     def addQuestions(self, questions: List[Question]) -> None:
         self.__questions += questions
@@ -38,8 +40,15 @@ class UniversalEncoder(AbstractQuestionMatcher):
         self.__question_embeddings += [tf.reshape(embedding, (-1, 1))
                                        for embedding in subject_embeddings]
 
-        # TODO do proper summarisation
-        body_embeddings = self.__model([question.body for question in questions])
+        summarisations = []
+
+        for question in questions:
+            summarisations.append(question.subject + " " + self.__summariser.getSummarisation(question.body))
+            # summarisations.append(f"{question.subject} {question.subject} {question.subject} {question.body}")
+
+            print(summarisations[-1])
+
+        body_embeddings = self.__model(summarisations)
         self.__body_embeddings += [tf.reshape(embedding, (-1, 1))
                                    for embedding in body_embeddings]
 
@@ -70,7 +79,7 @@ class UniversalEncoder(AbstractQuestionMatcher):
         # If we pass question and body, then combine them and find similarity
         if(body != ""):
             embedding_type = 'Text_vec'
-            question = preprocess(question) + body
+            question = preprocess(question) + self.__summariser.getSummarisation(body)
 
         query_embedding = self.__model([question])[0]
         query_embedding = tf.reshape(query_embedding, (-1, 1))

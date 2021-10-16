@@ -25,7 +25,13 @@
           </div>
           <div class="form-group">
             <label for="question-body">Body</label>
-            <textarea type="text" id="question-body" name="question-body" placeholder="Question Body"></textarea>
+            <textarea
+              type="text"
+              id="question-body"
+              name="question-body"
+              placeholder="Question Body"
+              oninput="onQuestionInputChange()"
+            ></textarea>
           </div>
           <div class="form-group form-group--inline">
             <button class="btn btn--green push-right" onclick="submitQuestion()">Submit</button>
@@ -129,8 +135,13 @@
 
       async function fetchSuggestions() {
         const questionSubject = newQuestionSubjectElement.value || "Help";
+        const questionBody = newQuestionBodyElement.value || "";
 
-        const res = await fetch(`/api/suggestion/${encodeURIComponent(questionSubject)}`);
+        console.log(`${questionSubject}, ${questionBody}`);
+
+        const res = await fetch(
+          `/api/suggestion/${encodeURIComponent(questionSubject)}/${encodeURIComponent(questionBody)}`
+        );
 
         if (!res.ok) {
           return;
@@ -146,19 +157,18 @@
         for (let i = 0; i < num; i++) {
           let suggestionElement = document.createElement("div");
           suggestionElement.innerHTML = matches[i].question;
-          suggestionElement.innerHTML += "<div class=\"badges\">";
+          suggestionElement.innerHTML += '<div class="badges">';
 
           // If the suggested question has been answered by the lecturer, add lecturer badge
           if (matches[i].flags.includes("lecturer")) {
-            suggestionElement.innerHTML += "<i class=\"fas fa-check-circle\" style=\"color:green\"></i>";
+            suggestionElement.innerHTML += '<i class="fas fa-check-circle" style="color:green"></i>';
           }
           // If the suggested question has been answered by the tutor, add tutor badge
           if (matches[i].flags.includes("tutor")) {
-            suggestionElement.innerHTML += "<i class=\"fas fa-check-circle\" style=\"color:orange\"></i>";
+            suggestionElement.innerHTML += '<i class="fas fa-check-circle" style="color:orange"></i>';
           }
 
           suggestionElement.innerHTML += "</div>";
-
 
           suggestionElement.classList.add("suggestion");
           suggestionElement.onclick = () => onSuggestionClick(matches[i].question);

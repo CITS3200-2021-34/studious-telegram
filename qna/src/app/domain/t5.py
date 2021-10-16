@@ -18,10 +18,10 @@ class T5(AbstractSummarisation):
         self.__tokenizer = T5Tokenizer.from_pretrained(model_name)
         self.__model = T5ForConditionalGeneration.from_pretrained(model_name)
 
-    def getSummarisations(self, question: str):
+    def getSummarisation(self, question: str):
         '''
         Creates a new summarised text from the question body.
-        Currently, max length of 50 words and min length of 5 
+        Currently, max length of 50 words and min length of 5
         words
 
         @param - question - the question body to summarise
