@@ -21,11 +21,9 @@ class App():
         questionMatcher.addQuestions(questions)
 
         if target_interface == "cli":
-            self.__interface = BasicCLI(
-                questionMatcher, questions, target_model)
+            self.__interface = BasicCLI(questionMatcher, questions)
         elif target_interface == "web":
-            self.__interface = TornadoWebInterface(
-                8080, questionMatcher, questions)
+            self.__interface = TornadoWebInterface(8080, questionMatcher, questions)
         else:
             raise ValueError(
                 f"target_interface ({target_interface}) is not valid")

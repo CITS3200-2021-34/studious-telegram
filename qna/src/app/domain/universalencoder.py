@@ -46,8 +46,6 @@ class UniversalEncoder(AbstractQuestionMatcher):
             summarisations.append(question.subject + " " + self.__summariser.getSummarisation(question.body))
             # summarisations.append(f"{question.subject} {question.subject} {question.subject} {question.body}")
 
-            print(summarisations[-1])
-
         body_embeddings = self.__model(summarisations)
         self.__body_embeddings += [tf.reshape(embedding, (-1, 1))
                                    for embedding in body_embeddings]
