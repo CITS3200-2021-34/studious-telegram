@@ -1,24 +1,10 @@
-import nltk  # Libary used in preprocessing
-import tensorflow_hub as hub  # Load Universal Encoder model
-import json  # Construct and use json methods
-import time  # Test time of code
-import numpy as np  # Help construct serialised array for json
-from nltk.stem import WordNetLemmatizer
-from nltk.tokenize import word_tokenize  # Splits data into list of tokens
-import string  # Used in preprocessing
-import email  # Used to construct and extract from email formated text
-import logging
-import tensorflow as tf                                                 #
-from transformers import T5ForConditionalGeneration, T5Tokenizer
-import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Remove TensorFlow Warnings
+from typing import Dict, List, Tuple
+import email
 
-from.json_loader import JsonLoader
-
-tf.get_logger().setLevel(logging.ERROR)
+from ..domain.question import Question
 
 
-def parseQuestionsAnswersFromFile(filePath: str, target_model: str):
+def parseQuestionsAnswersFromFile(filePath: str) -> List[Question]:
     '''
     Returns a dictionary containing each question in filePath, and a
     dictionary containing each answer in filePath.
@@ -28,9 +14,7 @@ def parseQuestionsAnswersFromFile(filePath: str, target_model: str):
     :return answers: Dictionary of answer threads
     '''
     threads = parseThreadsFromFile(filePath)
-    file = getPostsFromThreads(threads, target_model)
-    json = JsonLoader(file)
-    return json.read_data()
+    return getPostsFromThreads(threads)
 
 
 def parseThreadsFromFile(filePath: str):
@@ -59,63 +43,38 @@ def parseThreadsFromFile(filePath: str):
     return threads
 
 
-def getPostsFromThreads(threads, target_model):
+def getPostsFromThreads(threads) -> List[Question]:
     '''
     For each item in a given threads list, a list containing all contents
     is stored in a json formatted dictionary to be stored in a JSON file
 
     :param threads: List of question/answer strings
+    :param target_model: The target model
     :return None:
     '''
 
-    embeddings_subjects, embeddings_texts = helper_preprocess(threads)
-
     # Stores each question and answer into a json format and writes it to file
     # based on the target_model.
-    questions = {}
-    j = 0
+    added_questions = set()
+    questions: Dict[str, Question] = {}
+
     for i in threads:
 
         msg = email.message_from_string(i)
 
-        # If the subject line is not already inside the dictionary get embeddings
-        if msg['Subject'] not in questions.keys():
+        subject = msg['Subject']
+        body = msg.get_payload()
+        author = msg['From']
 
-            # convert to a json serialized format
-            text_vec = embeddings_texts[j].numpy().tolist()
-            # convert to a json serialized format
-            vec = embeddings_subjects[j].numpy().tolist()
+        if subject not in added_questions:
+            added_questions.add(subject)
 
-            # Stores the question into correspoding key-value pair
-            questions[msg['Subject']] = {'Date': msg['Date'],
-                                         'To': msg['To'],
-                                         'Received': msg['Received'],
-                                         'Subject_vec': vec,
-                                         'From': msg['From'],
-                                         'X-smile': msg['X-smile'],
-                                         'X-img': msg['X-img'],
-                                         'Text': msg._payload,
-                                         'Text_vec': text_vec,
-                                         'Answers': [],
-                                         }
-            j += 1
+            questions[subject] = Question(subject, body, author, [], [])
         else:
-            # Stores the answers to questions into its corresponding question key-value pair.
-            questions[msg['Subject']]['Answers'].append({'Date': msg['Date'],
-                                                         'To': msg['To'],
-                                                         'Received': msg['Received'],
-                                                         'Subject': msg['Subject'],
-                                                         'From': msg['From'],
-                                                         'X-smile': msg['X-smile'],
-                                                         'X-img': msg['X-img'],
-                                                         'Text': msg._payload,
-                                                         })
-    # Create a new file and store it inside storage folder. Name of json file is target model selected.
-    file_path = f'app/storage/questions2017_{target_model}.json'
-    with open(file_path, 'w') as outfile:
-        json.dump(questions, outfile)
-    print("Finished loading Json...")
-    return file_path
+            questions[subject].answers += [body]
+            questions[subject].answer_authors += [author]
+
+    return list(questions.values())
 
 
 def helper_preprocess(threads):
@@ -177,33 +136,3 @@ def get_summarisation(data, model, tokenizer):
         early_stopping=True)
     # just for debugging
     return tokenizer.decode(outputs[0])
-
-
-def preprocess(data):
-    '''
-    Preprocessers the data by removing unnecessary words, 
-    punctuation and grammar. The data is condensed into 
-    only meaningful words/tokens used to input into models
-
-    @param data - the text/subject that will be preprocessed
-    @return preprocessed_text - The preprocessed text.
-    '''
-
-    # Tokenize question and remove punctuation and lower strings
-    data = word_tokenize(data)
-    data = [i for i in data if i not in string.punctuation]
-    data = [i.lower() for i in data]
-
-    # Convert words to stem form
-    # e.g. 'playing' is converted to 'play'
-    lemmatizer = WordNetLemmatizer()
-    data = [lemmatizer.lemmatize(i) for i in data]
-
-    # Remove stopwords as they don't add value to the sentence meaning
-    # and select only the top 10 stop words.
-    # e.g. 'but' is not a valuable word
-    stopwords = nltk.corpus.stopwords.words('english')
-    stopwords = stopwords[0:10]
-    data = [i for i in data if i not in stopwords]
-
-    return " ".join(data)

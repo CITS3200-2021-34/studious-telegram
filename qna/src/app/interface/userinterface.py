@@ -8,11 +8,6 @@ class AbstractUserInterface(ABC):
     all abstract methods."""
 
     @abstractmethod
-    def setQuestionMatcher(self, matcher: AbstractQuestionMatcher) -> None:
-        """Set the question matcher used by the interface."""
-        pass
-
-    @abstractmethod
     def start(self) -> None:
         """Start the main user interface loop."""
         pass

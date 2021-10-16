@@ -1,0 +1,239 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto");
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Roboto", sans-serif;
+  position: relative;
+  height: 100%;
+}
+
+h1 {
+  font-weight: bolder;
+  font-size: 3rem;
+}
+
+h2 {
+  font-weight: bolder;
+}
+
+p {
+  color: #333;
+}
+
+.row {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.row > * {
+  margin: 2em;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.form-group.form-group--inline {
+  flex-direction: row;
+}
+
+.form-group + .form-group {
+  padding-top: 1em;
+}
+
+.form-group > * + * {
+  margin-block: 0.5em;
+}
+
+.form-group > label {
+  font-weight: bolder;
+}
+
+input {
+  padding: 1em;
+
+  border-radius: 0.12em;
+  border: #555;
+  border-style: solid;
+  border-width: 1px;
+
+  font-family: "Roboto", sans-serif;
+}
+
+input:focus {
+  outline: none;
+}
+
+.btn {
+  display: inline-block;
+  padding: 0.35em 1.2em;
+  border: 0.1em solid var(--btn-color, black);
+  margin: 0 0.3em 0.3em 0;
+  border-radius: 0.12em;
+  box-sizing: border-box;
+  text-decoration: none;
+  font-family: "Roboto", sans-serif;
+  font-weight: 300;
+  font-size: 1em;
+  color: var(--btn-color, black);
+  text-align: center;
+  transition: all 0.2s;
+  background-color: #0000;
+}
+
+.btn:hover {
+  color: #fff;
+  background-color: var(--btn-color, black);
+}
+
+.btn--green {
+  --btn-color: darkgreen;
+}
+
+textarea {
+  min-height: 6em;
+  padding: 1em;
+
+  border-radius: 0.12em;
+  border: #555;
+  border-style: solid;
+  border-width: 1px;
+
+  resize: vertical;
+
+  font-family: "Roboto", sans-serif;
+}
+
+.card {
+  box-shadow: 0px 0px 1em -0.5em #00000070;
+  border-radius: 1em;
+  padding: 2em;
+}
+
+.card--question {
+  flex: 0 1 40em;
+}
+
+.card--suggestions {
+  flex: 0 1 18em;
+  text-align: center;
+}
+
+.suggestion {
+  padding: 0.5em;
+  position: relative;
+  border-radius: 1em;
+  transition: transform 0.1s ease-in;
+  display: flex;
+  flex-direction: row;
+  text-align: left;
+  margin-left: auto;
+  justify-content: space-between;
+}
+
+.suggestion::after {
+  content: "";
+  position: absolute;
+  border-radius: inherit;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  box-shadow: 0px 0.2em 1em -0.6em #000000de;
+  opacity: 0;
+  transition: opacity 0.1s ease-in;
+}
+
+.suggestion:hover:not(:active) {
+  transform: translateY(-0.2em);
+}
+
+.suggestion:hover:not(:active)::after {
+  opacity: 1;
+}
+
+.suggestion:active {
+  transform: translateY(-0.1em) !important;
+}
+
+.suggestion:active::after {
+  opacity: 0.8 !important;
+}
+
+.modal {
+  position: absolute;
+  inset: 0;
+  display: none;
+  justify-content: center;
+  align-items: center;
+
+  background: #00000070;
+}
+
+.modal--content {
+  background-color: white;
+  width: min(40em, 70%);
+  align-items: center;
+  height: max-content;
+
+  box-shadow: 0px 0px 1em -0.5em #00000070;
+  border-radius: 1em;
+
+  max-height: 90vh;
+
+  display: flex;
+  align-items: stretch;
+  flex-direction: column;
+}
+
+.modal--heading,
+.modal--footer {
+  padding-inline: 1.5em;
+  padding-block: 2em;
+}
+
+.modal--heading > h2 {
+  margin: 0;
+}
+
+.modal--body {
+  padding-inline: 1.5em;
+  padding-block: 1em;
+  border-block: 1px solid #aaa;
+
+  overflow-x: auto;
+}
+
+.modal--body > p {
+  white-space: pre-line;
+}
+
+.modal--body > p + p {
+  padding-top: 1em;
+  border-top: 1px solid #aaa;
+  margin-top: 1em;
+}
+
+.push-right {
+  margin-left: auto;
+}
+
+.version-data {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  padding: 0.5em;
+}

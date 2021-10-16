@@ -1,55 +1,41 @@
-from .interface import BasicCLI, WebInterface
+from typing import List
+from .domain.question import Question
+from .interface import BasicCLI, TornadoWebInterface
 from .domain import UniversalEncoder, SentBERT, Doc2Vec, T5
 from .parser import parseQuestionsAnswersFromFile
-from .parser import JsonLoader
-import os.path
-import os
+from .parser import old_parseQuestionsAnswersFromFile
+from pathlib import Path
 
 
 class App():
-
-    def __init__(self, target_model, target_interface):
-
-        # If the diretory does not exists create one
-        if not os.path.exists('app/storage'):
-            os.makedirs('app/storage')
-
-        # If we don't have any files already in the directory create
-        # based off the target_model
-        if len(os.listdir("app/storage")) == 0:
-            questions = parseQuestionsAnswersFromFile(
-                'app/testfiles/help2002-2017.txt', target_model)
-
-        # Find the first file that contains the target model
-        else:
-            flag = False  # used to confirm file exists if true
-            for file in os.listdir('app/storage'):
-                if target_model in file:
-                    file = f'app/storage/{file}'
-                    json = JsonLoader(file)
-                    questions = json.read_data()
-                    flag = True
-                    break
-            if not flag:
-                questions = parseQuestionsAnswersFromFile(
-                    'app/testfiles/help2002-2017.txt', target_model)
+    def __init__(self, target_model: str, target_interface: str):
+        questions = parseQuestionsAnswersFromFile(
+            'app/testfiles/help2002-2017.txt')
 
         if target_model == "UniversalEncoder":
-            questionMatcher = UniversalEncoder(questions)
+            questionMatcher = UniversalEncoder()
         elif target_model == "BERT":
-            questionMatcher = SentBERT(questions)
+            questionMatcher = SentBERT()
         elif target_model == "doc2vec":
-            questionMatcher = Doc2Vec(questions)
+            questionMatcher = Doc2Vec()
         else:
             raise ValueError(f"targetModel ({target_model}) is not valid")
 
+        questionMatcher.addQuestions(questions)
+
         if target_interface == "cli":
-            # max_length = 50, min_length = 5, model_name = 't5-small' | 't5-base'
+            # max_length = 50, min_length = 5, model_name = 't5-small' |
+            # 't5-base'
             summariser = T5(50, 5, 't5-small')
+
+            questions = old_parseQuestionsAnswersFromFile(
+                'app/testfiles/help2002-2017.txt', target_model)
+
             self.__interface = BasicCLI(
                 questionMatcher, summariser, questions, target_model)
         elif target_interface == "web":
-            self.__interface = WebInterface(questionMatcher)
+            self.__interface = TornadoWebInterface(
+                8080, questionMatcher, questions)
         else:
             raise ValueError(
                 f"target_interface ({target_interface}) is not valid")

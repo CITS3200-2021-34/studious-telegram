@@ -13,6 +13,109 @@ The `nginx` module contains the configuration file for nginx. Nginx is a web ser
 
 ![Structure Diagram](./docs/diagrams/structure.drawio.svg)
 
+# Enviornment
+
+## Python
+
+Requires python 3.8+
+
+# Structure
+
+## ProjectTree
+
+│  .dockerignore
+│  .gitignore
+│  docker-compose.yaml
+│  README.md
+│  readme.txt
+│  start.sh
+│  
+├─.idea
+│  │  .gitignore
+│  │  misc.xml
+│  │  modules.xml
+│  │  studious-telegram-main.iml
+│  │  workspace.xml
+│  │  
+│  └─inspectionProfiles
+│          profiles_settings.xml
+│          
+├─docker
+│      nginx.dockerfile
+│      qna.dockerfile
+│      README.md
+│      
+├─docs
+│  │  README.md
+│  │  
+│  └─diagrams
+│          qnaarchitecture.drawio.svg
+│          structure.drawio.svg
+│          
+├─frontend
+│      debug-styles.css
+│      debug.html
+│      index.html
+│      README.md
+│      styles.css
+│      
+├─nginx
+│      nginx.conf
+│      README.md
+│      
+└─qna
+    │  README.md
+    │  
+    └─src
+        │  main.py
+        │  
+        └─app
+            │  __init__.py
+            │  
+            ├─domain
+            │  │  doc2vec.py
+            │  │  keywordmatcher.py
+            │  │  questionmatcher.py
+            │  │  sent_BERT.py
+            │  │  summarisation.py
+            │  │  t5.py
+            │  │  universalencoder.py
+            │  │  __init__.py
+            │  │  
+            │  └─__pycache__
+            │          doc2vec.cpython-38.pyc
+            │          questionmatcher.cpython-38.pyc
+            │          __init__.cpython-38.pyc
+            │          
+            ├─interface
+            │  │  basiccli.py
+            │  │  userinterface.py
+            │  │  web.py
+            │  │  __init__.py
+            │  │  
+            │  └─__pycache__
+            │          userinterface.cpython-38.pyc
+            │          __init__.cpython-38.pyc
+            │          
+            ├─parser
+            │      json_loader.py
+            │      loader.py
+            │      parser.py
+            │      write_to_json.py
+            │      __init__.py
+            │      
+            ├─pretrained
+            │      d2v.model
+            │      d2v.model.dv.vectors.npy
+            │      
+            ├─testfiles
+            │      help2002-2017.txt
+            │      help2002-2018.txt
+            │      help2002-2019.txt
+            │      
+            └─__pycache__
+                    __init__.cpython-38.pyc
+                    
 # Running the project
 
 The project can be run in two ways. 
@@ -57,5 +160,5 @@ git push
 4. Tests will run, your code gets reviewed and hopefully then merged
 5. Delete the branch and start again for the next feature/bug
 ```
-git branch -d epic-feature
+git branch -d epic-feature 
 ```

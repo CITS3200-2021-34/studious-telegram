@@ -1,5 +1,4 @@
 from ..parser import write_to_json
-from ..parser.parser import preprocess
 from ..domain import AbstractQuestionMatcher
 from ..domain import AbstractSummarisation
 from .userinterface import AbstractUserInterface
@@ -8,12 +7,17 @@ import questionary
 
 class BasicCLI(AbstractUserInterface):
     '''
-    Class for constructing a basic command line interface for the user 
+    Class for constructing a basic command line interface for the user
     to interact with when asking questions and viewing suggestions.
     '''
     __matcher: AbstractQuestionMatcher = None
 
-    def __init__(self, matcher: AbstractQuestionMatcher, summariser: AbstractSummarisation, questions, target_model: str):
+    def __init__(
+            self,
+            matcher: AbstractQuestionMatcher,
+            summariser: AbstractSummarisation,
+            questions,
+            target_model: str):
         '''
         Constructor for the BasicCLI class.
 
@@ -114,7 +118,7 @@ class BasicCLI(AbstractUserInterface):
         This method find the suggested questions based of both the
         question and the subject line
 
-        @param  question - the question 
+        @param  question - the question
                 body_text - the question body
         @return text_vec - the embedding of the question + subject
                 top_suggestions - the top suggestions above threshold
@@ -150,12 +154,12 @@ class BasicCLI(AbstractUserInterface):
 
     def start(self):
         '''
-        Prints the top 10 question suggestions, based on the user's command 
+        Prints the top 10 question suggestions, based on the user's command
         line entry.
 
         :param self: Instance of the BasicCLI object
         '''
-        if self.__matcher == None:
+        if self.__matcher is None:
             raise RuntimeError("Matcher has not been set.")
 
         empty = False  # if the string by the user is empty set flag
@@ -175,7 +179,8 @@ class BasicCLI(AbstractUserInterface):
                     question)
 
                 confirm = False
-                if len(top_questions) != 0 and questionary.confirm("Would you like to view these suggestions? (Select 1 suggestion only)").ask():
+                if len(top_questions) != 0 and questionary.confirm(
+                        "Would you like to view these suggestions? (Select 1 suggestion only)").ask():
                     num = questionary.checkbox(
                         'Select questions',
                         choices=top_questions
@@ -210,7 +215,8 @@ class BasicCLI(AbstractUserInterface):
 
                     # Ask the user whether they wish to view the suggestions
                     confirm = False
-                    if len(top_questions) != 0 and questionary.confirm("Would you like to view these suggestions? (Select 1 suggestion only)").ask():
+                    if len(top_questions) != 0 and questionary.confirm(
+                            "Would you like to view these suggestions? (Select 1 suggestion only)").ask():
                         num = questionary.checkbox(
                             'Select questions',
                             choices=top_questions
