@@ -61,9 +61,12 @@ class NewQuestionHandler(BaseHandler):
             self.set_status(400)
             return
 
+        # TODO add option to send other relevant data (date, answers, etc)
         newQuestion = Question(
             self.json_args['subject'],
             self.json_args['body'],
+            "",
+            [],
             [],
             [])
 

@@ -65,14 +65,16 @@ def getPostsFromThreads(threads) -> List[Question]:
         subject = msg['Subject']
         body = msg.get_payload()
         author = msg['From']
+        date = msg['Date']
 
         if subject not in added_questions:
             added_questions.add(subject)
 
-            questions[subject] = Question(subject, body, author, [], [])
+            questions[subject] = Question(subject, body, author, date, [], [], [])
         else:
             questions[subject].answers += [body]
             questions[subject].answer_authors += [author]
+            questions[subject].answer_dates += [date]
 
     return list(questions.values())
 
