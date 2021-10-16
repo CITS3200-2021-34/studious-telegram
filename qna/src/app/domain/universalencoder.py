@@ -63,9 +63,9 @@ class UniversalEncoder(AbstractQuestionMatcher):
             - query_embedding - The embedding value for the asked question
         '''
 
-        # If we pass the model an empty question and body then return None
+        # If we pass the model an empty question and body then return empty list
         if(question == "" and body == ""):
-            return None
+            return []
 
         embedding_type = ""  # This will be either 'Subject_vec' or 'Text_vec' depending on stage
 
