@@ -24,7 +24,7 @@ class Doc2VecModel(AbstractQuestionMatcher):
         '''
         Constructor for the Doc2VecModel class.
 
-        :param self: Instance of the sentBERT object
+        :param self: Instance of the Doc2VecModel object
         :param self.__model: The model to embed the text
         :param self.__questions: list of questions
         :param self.__question_embeddings list of subject embeddings
@@ -62,7 +62,7 @@ class Doc2VecModel(AbstractQuestionMatcher):
 
         body_embeddings = []
         for summarised in summarisations:
-            body_embeddingsa.ppend(
+            body_embeddings.append(
                 self.__model.infer_vector(preprocess(summarised)))
         self.__body_embeddings += [tf.reshape(embedding, (-1, 1))
                                    for embedding in body_embeddings]
