@@ -22,28 +22,42 @@ class UniversalEncoder(AbstractQuestionMatcher):
 
     def __init__(self):
         '''
-        Constructor for the UniversalEncoder class.
+        Constructor for the sentBERT class.
 
-        :param self: Instance of the UniversalEncoder object
+        :param self: Instance of the sentBERT object
+        :param self.__model: The model to embed the text
+        :param self.__questions: list of questions
+        :param self.__question_embeddings list of subject embeddings
+        :param self.__body_embeddings list of body embeddings
+        :param self.__sumarisation: t5 model for text summarisation
+
         '''
-
         self.__model = hub.load(self.MODULE_URL)
         self.__questions: List[Question] = []
         self.__question_embeddings = []
         self.__body_embeddings = []
-        self.__summariser = T5(50, 5, 't5-small')
+        self.__summariser = T5(30, 10, 't5-small')
 
     def addQuestions(self, questions: List[Question]) -> None:
+        '''
+        This class takes in a list of questions and embeds the subjet
+        and the body. The body is summarisied and then embedded.
+
+        :param questions: The list of questions to embed.
+        '''
+
         self.__questions += questions
 
-        subject_embeddings = self.__model([question.subject for question in questions])
+        subject_embeddings = self.__model(
+            [question.subject for question in questions])
         self.__question_embeddings += [tf.reshape(embedding, (-1, 1))
                                        for embedding in subject_embeddings]
 
         summarisations = []
 
         for question in questions:
-            summarisations.append(question.subject + " " + self.__summariser.getSummarisation(question.body))
+            summarisations.append(
+                question.subject + " " + self.__summariser.getSummarisation(question.body))
             # summarisations.append(f"{question.subject} {question.subject} {question.subject} {question.body}")
 
         body_embeddings = self.__model(summarisations)
@@ -77,7 +91,8 @@ class UniversalEncoder(AbstractQuestionMatcher):
         # If we pass question and body, then combine them and find similarity
         if(body != ""):
             embedding_type = 'Text_vec'
-            question = preprocess(question) + self.__summariser.getSummarisation(body)
+            question = preprocess(question) + \
+                self.__summariser.getSummarisation(body)
 
         query_embedding = self.__model([question])[0]
         query_embedding = tf.reshape(query_embedding, (-1, 1))
