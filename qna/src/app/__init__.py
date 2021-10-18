@@ -1,10 +1,7 @@
-from typing import List
-from .domain.question import Question
 from .interface import BasicCLI, TornadoWebInterface
-from .domain import UniversalEncoder, SentBERT, Doc2Vec, T5
+from .domain import UniversalEncoder, Doc2VecModel, SentBERT
 from .parser import parseQuestionsAnswersFromFile
 from .parser import old_parseQuestionsAnswersFromFile
-from pathlib import Path
 
 
 class App():
@@ -17,20 +14,14 @@ class App():
         elif target_model == "BERT":
             questionMatcher = SentBERT()
         elif target_model == "doc2vec":
-            questionMatcher = Doc2Vec()
+            questionMatcher = Doc2VecModel()
         else:
             raise ValueError(f"targetModel ({target_model}) is not valid")
 
         questionMatcher.addQuestions(questions)
 
         if target_interface == "cli":
-            summariser = T5()
-
-            questions = old_parseQuestionsAnswersFromFile(
-                'app/testfiles/help2002-2017.txt', target_model)
-
-            self.__interface = BasicCLI(
-                questionMatcher, summariser, questions, target_model)
+            self.__interface = BasicCLI(questionMatcher, questions)
         elif target_interface == "web":
             self.__interface = TornadoWebInterface(
                 8080, questionMatcher, questions)

@@ -1,28 +1,29 @@
 from .questionmatcher import AbstractQuestionMatcher
-from gensim.models.doc2vec import Doc2Vec
-from typing import List, Tuple
 from .t5 import T5
-import tensorflow as tf
+from sentence_transformers import SentenceTransformer
 from scipy.spatial.distance import cosine
 import operator
+import tensorflow as tf
 from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
 import nltk
 import string
-from .question import Question
 
+from .question import Question
+from .questionmatcher import AbstractQuestionMatcher
 
 from typing import List, Tuple
 
 
-class Doc2VecModel(AbstractQuestionMatcher):
+class SentBERT(AbstractQuestionMatcher):
     '''
-    This is a class for sentence embedding of question subjects using Doc2Vec.
+    This is a class for sentence embedding of question subjects using 
+    Sentence-BERT.
     '''
 
     def __init__(self):
         '''
-        Constructor for the Doc2VecModel class.
+        Constructor for the sentBERT class.
 
         :param self: Instance of the sentBERT object
         :param self.__model: The model to embed the text
@@ -32,7 +33,8 @@ class Doc2VecModel(AbstractQuestionMatcher):
         :param self.__sumarisation: t5 model for text summarisation
 
         '''
-        self.__model = Doc2Vec.load('app/pretrained/d2v.model')
+        # Load the model and pass in questions as a list to get embeddings
+        self.__model = SentenceTransformer('bert-base-nli-mean-tokens')
         self.__questions: List[Question] = []
         self.__question_embeddings = []
         self.__body_embeddings = []
@@ -48,32 +50,34 @@ class Doc2VecModel(AbstractQuestionMatcher):
 
         self.__questions += questions
 
-        for question in questions:
-            subject_embeddings = self.__model.infer_vector(
-                preprocess(question.subject))
+        subject_embeddings = self.__model.encode(
+            [preprocess(question.subject) for question in questions])
 
-            self.__question_embeddings.append([tf.reshape(embedding, (-1, 1))
-                                               for embedding in subject_embeddings])
+        self.__question_embeddings += [tf.reshape(embedding, (-1, 1))
+                                       for embedding in subject_embeddings]
 
         summarisations = []
+
         for question in questions:
             summarisations.append(
-                ' '.join(preprocess(question.subject)) + " " + self.__summariser.getSummarisation(question.body))
+                question.subject + " " + self.__summariser.getSummarisation(question.body))
+            # summarisations.append(f"{question.subject} {question.subject} {question.subject} {question.body}")
 
-        for summarised in summarisations:
-            body_embeddings = self.__model.infer_vector(preprocess(summarised))
+        body_embeddings = self.__model.encode(summarisations)
         self.__body_embeddings += [tf.reshape(embedding, (-1, 1))
                                    for embedding in body_embeddings]
 
-    def getSuggestions(self, question: str, body: str) -> List[Tuple[str, float]]:
+    def getSuggestions(self, question: str, body: str) -> List[Tuple[str, float, List[str]]]:
         '''
-        Determines question suggestions for a given question, based on the 
+        Determines question suggestions for a given question, based on the
         similarity of their subject-line.
 
-        :param self: Instance of the Doc2Vec object
+        :param self: Instance of the UniversalEncoder object
         :param question: An element of the question dictionary
-        :return [k[0] for k in similarity_dict]: List of all questions from 
-            question dictionary ordered from most similar to least
+        :returns:
+            - suggestions - A list of suggestion tuples containing the suggestion's subject string,
+                    similarity value, and list of authors who have answered it
+            - query_embedding - The embedding value for the asked question
         '''
 
         # If we pass the model an empty question and body then return empty list
@@ -93,11 +97,8 @@ class Doc2VecModel(AbstractQuestionMatcher):
             question = preprocess(question) + \
                 self.__summariser.getSummarisation(body)
 
-        # pass token list into model to get embedding
-        query_embedding = self.__model.infer_vector(question)
-
-        # reshape vector for cosine similarity
-        query_embedding = query_embedding.reshape(1, -1)
+        query_embedding = self.__model.encode([question])[0]
+        query_embedding = tf.reshape(query_embedding, (-1, 1))
 
         # Loop through the sentence embedding of each question, finding the cosine
         # between this and the embedding of the asked question
@@ -133,12 +134,6 @@ class Doc2VecModel(AbstractQuestionMatcher):
 
         return suggestions, query_embedding
 
-        # sort by highest cosine value
-        sim_dict = sorted(sim_dict.items(),
-                          key=operator.itemgetter(1), reverse=True)
-
-        return sim_dict
-
 
 def preprocess(data):
 
@@ -146,10 +141,12 @@ def preprocess(data):
     data = word_tokenize(data)
     data = [i for i in data if i not in string.punctuation]
     data = [i.lower() for i in data]
+
     # Convert words to stem form
     # e.g. 'playing' is converted to 'play'
     lemmatizer = WordNetLemmatizer()
     data = [lemmatizer.lemmatize(i) for i in data]
+
     # Remove stopwords as they don't add value to the sentence meaning
     # and select only the top 10 stop words.
     # e.g. 'the' is not a valuable word
@@ -157,4 +154,4 @@ def preprocess(data):
     stopwords = stopwords[0:10]
     data = [i for i in data if i not in stopwords]
 
-    return data
+    return " ".join(data)

@@ -9,7 +9,8 @@ Requires python 3.8+
 Please also note the python modules required, listed [below](#requirements).
 
 ```
-python3 ./src/main.py
+python -c "import nltk; nltk.download('punkt'); nltk.download('wordnet'); nltk.download('stopwords')"
+python3 ./src/main.py --interface cli
 ```
 
 # Structure
@@ -20,7 +21,7 @@ The project has been built with interfaces for the major components to allow for
 
 The docker package contains the content deployed to the server,Therefore, you can use the docker command to deploy this project to docker.
 
-##  docs
+## docs
 
 The docs package contains the structure diagram of the project file, as shown below.
 
@@ -32,13 +33,13 @@ The frontend package contains the web page files for front-end user interaction 
 
 The nginx package contains the configuration of this application deployment, which is deployed to the front end using nginx.
 
-##  qna
+## qna
 
 ### main.py
 
 `main.py` builds the question matcher and the user interface, links them, and then triggers the UI's main input loop.
 
-The `qna` module is structured as shown below. The 'user' interacts with the `interface` that then translates the request to a form that the model can process. The model gives suggestions based on the question, and then these suggestions are transmitted  back to the 'user' by the `interface`.
+The `qna` module is structured as shown below. The 'user' interacts with the `interface` that then translates the request to a form that the model can process. The model gives suggestions based on the question, and then these suggestions are transmitted back to the 'user' by the `interface`.
 
 ![Architecture](../docs/diagrams/qnaarchitecture.drawio.svg)
 
@@ -78,27 +79,27 @@ The testfiles package contains the data of the test set and is stored in a TXT f
 
 ## Python modules
 
-* `gensim`
+- `gensim`
   `pip install --upgrade gensim`
-  or 
+  or
   `conda install -c conda-forge gensim`
-* `nltk`
+- `nltk`
   run `pip install --user -U nltk`
-* `sklearn`
+- `sklearn`
   `pip install -U scikit-learn `
-* `sentence_transformers`
+- `sentence_transformers`
   `pip install -U sentence-transformers`
-* `tensorflow`
-  `pip3 install --user --upgrade tensorflow  # install in $HOME`
-* `tensorflow_hub`
+- `tensorflow`
+  `pip3 install --user --upgrade tensorflow # install in $HOME`
+- `tensorflow_hub`
   `!pip install --upgrade tensorflow_hub`
-* `scipy`
+- `scipy`
   `python3 -m pip install -U scipy`
-* `numpy`
+- `numpy`
   `pip install numpy`
-* `pandas`
+- `pandas`
   `pip install pandas`
-  
+
 # Data
 
 This app relies on previous QnA data. This data, although not highly sensitive, should not be publicly shared so that risk is minimised. To achieve this all data should be stored in `./data`. This directory is included in `.gitignore` to help prevent accidental upload.

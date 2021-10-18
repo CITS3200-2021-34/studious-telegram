@@ -65,28 +65,15 @@ def getPostsFromThreads(threads) -> List[Question]:
         subject = msg['Subject']
         body = msg.get_payload()
         author = msg['From']
+        date = msg['Date']
 
         if subject not in added_questions:
             added_questions.add(subject)
 
-            questions[subject] = Question(subject, body, author, [], [])
+            questions[subject] = Question(subject, body, author, date, [], [], [])
         else:
             questions[subject].answers += [body]
             questions[subject].answer_authors += [author]
+            questions[subject].answer_dates += [date]
 
     return list(questions.values())
-
-
-def get_summarisation(data, tokenizer, model):
-    input = tokenizer.encode(data, return_tensors="pt",
-                             max_length=512, truncation=True)
-    # generate the summarization output
-    outputs = model.generate(
-        input,
-        max_length=50,
-        min_length=30,
-        length_penalty=2.0,
-        num_beams=4,
-        early_stopping=True)
-    # just for debugging
-    return tokenizer.decode(outputs[0])

@@ -27,10 +27,11 @@ class SuggestionHandler(BaseHandler):
     def initialize(self, questionMatcher: AbstractQuestionMatcher) -> None:
         self.questionMatcher = questionMatcher
 
-    def get(self, rawQuestion) -> None:
+    def get(self, rawQuestion, rawBody) -> None:
         question = urllib.parse.unquote(rawQuestion)
+        body = urllib.parse.unquote(rawBody)
 
-        suggestions, _ = self.questionMatcher.getSuggestions(question, False)
+        suggestions, _ = self.questionMatcher.getSuggestions(question, body)
 
         response = {
             "matches": [],
@@ -40,7 +41,7 @@ class SuggestionHandler(BaseHandler):
         for suggestion in suggestions:
             response["matches"].append({
                 "question": suggestion[0],
-                "similarity": suggestion[1], 
+                "similarity": suggestion[1],
                 "flags": suggestion[2]
             })
 
@@ -60,10 +61,13 @@ class NewQuestionHandler(BaseHandler):
             self.set_status(400)
             return
 
+        # TODO add option to send other relevant data (date, answers, etc)
         newQuestion = Question(
             self.json_args['subject'],
             self.json_args['body'],
-            [], 
+            "",
+            [],
+            [],
             [])
 
         self.questionMatcher.addQuestions([newQuestion])
@@ -105,7 +109,7 @@ class TornadoWebInterface(AbstractUserInterface):
         self.__questions = questions
 
     def start(self) -> None:
-        app = tornado.web.Application([(r"/api/suggestion/([^/]+)",
+        app = tornado.web.Application([(r"/api/suggestion/([^/]+)/([^/]*)",
                                       SuggestionHandler,
                                       {"questionMatcher": self.__questionMatcher}),
             (r"/api/question/new",
