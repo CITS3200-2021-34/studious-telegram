@@ -1,5 +1,5 @@
 from .interface import BasicCLI, TornadoWebInterface
-from .domain import UniversalEncoder, SentBERT, Doc2Vec, T5
+from .domain import UniversalEncoder, Doc2VecModel, SentBERT
 from .parser import parseQuestionsAnswersFromFile
 from .parser import old_parseQuestionsAnswersFromFile
 
@@ -14,7 +14,7 @@ class App():
         elif target_model == "BERT":
             questionMatcher = SentBERT()
         elif target_model == "doc2vec":
-            questionMatcher = Doc2Vec()
+            questionMatcher = Doc2VecModel()
         else:
             raise ValueError(f"targetModel ({target_model}) is not valid")
 
@@ -23,7 +23,8 @@ class App():
         if target_interface == "cli":
             self.__interface = BasicCLI(questionMatcher, questions)
         elif target_interface == "web":
-            self.__interface = TornadoWebInterface(8080, questionMatcher, questions)
+            self.__interface = TornadoWebInterface(
+                8080, questionMatcher, questions)
         else:
             raise ValueError(
                 f"target_interface ({target_interface}) is not valid")
