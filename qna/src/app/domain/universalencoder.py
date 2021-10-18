@@ -22,9 +22,9 @@ class UniversalEncoder(AbstractQuestionMatcher):
 
     def __init__(self):
         '''
-        Constructor for the sentBERT class.
+        Constructor for the UniversalEncoder class.
 
-        :param self: Instance of the sentBERT object
+        :param self: Instance of the UniversalEncoder object
         :param self.__model: The model to embed the text
         :param self.__questions: list of questions
         :param self.__question_embeddings list of subject embeddings
