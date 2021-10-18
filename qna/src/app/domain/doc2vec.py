@@ -48,9 +48,10 @@ class Doc2VecModel(AbstractQuestionMatcher):
 
         self.__questions += questions
 
+        subject_embeddings = []
         for question in questions:
-            subject_embeddings = self.__model.infer_vector(
-                preprocess(question.subject))
+            subject_embeddings.append(self.__model.infer_vector(
+                preprocess(question.subject)))
 
             self.__question_embeddings.append([tf.reshape(embedding, (-1, 1))
                                                for embedding in subject_embeddings])
@@ -60,8 +61,10 @@ class Doc2VecModel(AbstractQuestionMatcher):
             summarisations.append(
                 ' '.join(preprocess(question.subject)) + " " + self.__summariser.getSummarisation(question.body))
 
+        body_embeddings = []
         for summarised in summarisations:
-            body_embeddings = self.__model.infer_vector(preprocess(summarised))
+            body_embeddings.append(
+                self.__model.infer_vector(preprocess(summarised)))
         self.__body_embeddings += [tf.reshape(embedding, (-1, 1))
                                    for embedding in body_embeddings]
 
