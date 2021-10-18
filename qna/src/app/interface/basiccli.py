@@ -74,7 +74,8 @@ class BasicCLI(AbstractUserInterface):
         '''
         suggestions, _ = self.__matcher.getSuggestions(question, "")
 
-        top_questions = [suggestion[0] for suggestion in suggestions[:10] if suggestion[1] > 0.6]
+        top_questions = [suggestion[0]
+                         for suggestion in suggestions[:10] if suggestion[1] > 0.6]
 
         return top_questions
 
@@ -93,7 +94,8 @@ class BasicCLI(AbstractUserInterface):
         suggestions, _ = self.__matcher.getSuggestions(question, body_text)
 
         # show the top 10 suggestions above threshold
-        top_suggestions = [suggestion[0] for suggestion in suggestions[:10] if suggestion[1] > 0.3]
+        top_suggestions = [suggestion[0]
+                           for suggestion in suggestions[:10] if suggestion[1] > 0.3]
 
         return top_suggestions
 
@@ -147,7 +149,8 @@ class BasicCLI(AbstractUserInterface):
 
         while True:
             # First Suggestions
-            question = self.get_nonempty_user_input("What is the title of your question?")
+            question = self.get_nonempty_user_input(
+                "What is the title of your question?")
 
             print("\nLoading Suggestions....\n")
 
@@ -162,12 +165,14 @@ class BasicCLI(AbstractUserInterface):
 
             # Second Suggestions
             # If the user declines the suggestions, prompt user to write a body to the question.
-            body_text = self.get_nonempty_user_input("What is the body of your question?")
+            body_text = self.get_nonempty_user_input(
+                "What is the body of your question?")
 
             print("\nLoading Suggestions....\n")
 
             # get suggestions based off subject + text body
-            second_suggestions = self.get_second_suggestions(question, body_text)
+            second_suggestions = self.get_second_suggestions(
+                question, body_text)
             self.print_suggestion_summary(second_suggestions)
 
             # Ask the user whether they wish to view the suggestions
