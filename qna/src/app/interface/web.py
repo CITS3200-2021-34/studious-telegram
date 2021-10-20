@@ -66,6 +66,7 @@ class NewQuestionHandler(BaseHandler):
             self.json_args['subject'],
             self.json_args['body'],
             "",
+            "",
             [],
             [],
             [])
